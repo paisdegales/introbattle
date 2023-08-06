@@ -1,0 +1,4 @@
+activate.fish
+venv/
+__pycache__/
+tags
