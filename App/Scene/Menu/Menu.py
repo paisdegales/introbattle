@@ -1,7 +1,8 @@
 from App.Scene.Scene import Scene
 from App.Screen.Screen import Screen
-from App.Font.OpenSans import OpenSans
 from App.Object.BackgroundImage import BackgroundImage
+from App.Scene.Menu.Local.Banner import Banner
+from App.Scene.Menu.Local.Positioning import *
 from logging import warning
 
 class Menu(Scene):
@@ -12,22 +13,19 @@ class Menu(Scene):
         try:
             self.background = BackgroundImage(self.screen.get_size())
             self.background.screen = self.screen
-            self.background.move("topleft", (0, 0))
+            self.background.move(*BACKGROUND_POSITION)
         except Exception as e:
-            warning(f"Failed when loading background image: {type(e)}")
+            warning(f"Failed when loading the menu's background image: {type(e)}")
+            raise e
+
+        try:
+            self.banner = Banner("OpenSans", self.screen)
+            self.banner.load("Introbattle!", size=(300, 150), vertex="center", coordinates=(150, 75))
+        except Exception as e:
+            warning("Failed when loading the menu's banner: {type(e)}")
             raise e
 
         """
-        try:
-            fonte_banner = OpenSans()
-            self.banner = ImagemTexto(fonte_banner, self.screen)
-            self.banner.load("BoldItalic", "Introbattle!", 40, BRANCO, VERMELHO)
-            self.banner.set_background((300, 150))
-            self.banner.set_border(BRANCO, 3)
-        except Exception as e:
-            warning("Erro ao carregar banner do jogo")
-            raise e
-
         try:
             path_to_heros = join("App", "Imagens", "Personagens", "Herois")
             nomes_herois = [heroi.replace(".png", "") for heroi in listdir(path_to_heros) if isfile(join(path_to_heros, heroi))]
@@ -49,13 +47,14 @@ class Menu(Scene):
             warning("Failed when drawing the menu's background")
             raise e
 
-        """
         try:
-            self.banner.pintar((365, 80))
+            self.banner.move(*BANNER_POSITION)
+            self.banner.draw()
         except Exception as e:
-            warning("Erro ao desenhar banner!")
+            warning("Failed when drawing the menu's banner")
             raise e
         
+        """
         try:
             for index, heroi in enumerate(self.herois):
                 heroi.pintar((100+100*index, 500))
@@ -66,7 +65,8 @@ class Menu(Scene):
 
     def erase(self) -> None:
         try:
-            self.background.erase()
+            #self.background.erase()
+            self.banner.erase()
         except Exception as e:
             warning("Failed when trying to erase the menu scene!")
             raise e
