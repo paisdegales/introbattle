@@ -3,27 +3,32 @@ from pygame.rect import Rect
 from pygame.draw import line
 from pygame.color import Color
 from pygame.display import update
+from pygame.transform import scale_by, flip
 from logging import warning
+
 
 class UndefinedScreen(Exception):
     def __init__(self, *args):
         super().__init__(*args)
 
+
 class OutOfBoundary(Exception):
     def __init__(self, *args):
         super().__init__(*args)
+
 
 class Object(Surface):
     def __init__(self, *args, surface: Surface = None):
         if surface is None:
             super().__init__(*args)
         else:
-            super().__init__(surface.get_size(), surface.get_flags(), surface)
+            super().__init__(surface.get_size(), surface.get_flags(), surface.get_bitsize())
             self.blit(surface, (0, 0))
         self.rect = Rect((0,0), self.get_size())
         self.drawn = False
         self.screen = None
         self.addons = dict()
+
 
     @property
     def screen(self):
@@ -31,36 +36,42 @@ class Object(Surface):
             raise UndefinedScreen("The object is missing its drawing surface!")
         return self._screen
 
+
     @screen.setter
     def screen(self, screen: Surface | None):
         """Defines which surface the Object is gonna be drawn to"""
         self._screen = screen
 
+
     def move(self, vertex: str, coordinates: tuple[int, int]) -> None:
         """Moves a certain vertex of the Object to a given coordinate"""
         setattr(self.rect, vertex, coordinates)
+
 
     def fits(self) -> bool:
         """Checks if the Object can be drawn to its drawing surface in its current position"""
         return self.screen.get_rect().contains(self.rect)
 
+
     def draw(self) -> None:
         if not self.fits():
             raise OutOfBoundary("The object cannot be drawn because it's exceeds the surface's limits", self.rect, self.screen.get_rect())
-            
+
         self.drawn = True
         self._eraser = self.copy()
         self._eraser.blit(self.screen, (0, 0), self.rect)
         self.drawn_area = self.screen.blit(self, self.rect)
         update(self.drawn_area)
 
+
     def erase(self) -> None:
         if not hasattr(self, "_eraser"):
             warning("Object cannot be erased before being drawn!")
-            return 
+            return
         self.drawn = False
         self.screen.blit(self._eraser, self.drawn_area)
         update(self.drawn_area)
+
 
     def toggle(self) -> None:
         if self.drawn:
@@ -68,27 +79,39 @@ class Object(Surface):
         else:
             self.draw()
 
+
     def make_contour(self, color: Color, thickness: int) -> None:
         line(self, color, self.get_rect().bottomleft, self.get_rect().topleft, width=thickness)
         line(self, color, self.get_rect().topleft, self.get_rect().topright, width=thickness)
         line(self, color, self.get_rect().topright, self.get_rect().bottomright, width=thickness+2)
         line(self, color, self.get_rect().bottomright, self.get_rect().bottomleft, width=thickness+2)
 
-    def add(self, ref: str, vertex: str, *args) -> None:
+
+    def add(self, ref: str, vertex: str, *args, force_update: bool = False) -> None:
         surf, coords, area = args
         obj = Object(surface=surf)
         obj.screen = self
         obj.move(vertex, coords)
         self.addons[ref] = obj
         obj.draw()
-        self.draw()
+        if force_update:
+            self.draw()
 
-    def remove(self, ref: str) -> None:
+
+    def remove(self, ref: str, force_update: bool = False) -> None:
         self.addons[ref].erase()
-        self.draw()
+        if force_update:
+            self.draw()
+
 
     def toggle_addon(self, ref: str) -> None:
         if self.addons[ref].drawn:
             self.addons[ref].erase()
         else:
             self.addons[ref].draw()
+
+
+    def to_surface(self) -> Surface:
+        surface = Surface(self.get_size(), self.get_flags(), self.get_bitsize())
+        surface.blit(self, (0, 0))
+        return surface

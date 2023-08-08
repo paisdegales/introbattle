@@ -1,67 +1,56 @@
-from App.Scene.Scene import Scene
-from App.Screen.Screen import Screen
 from App.Object.BackgroundImage import BackgroundImage
 from App.Scene.Menu.Local.Banner import Banner
+from App.Scene.Menu.Local.GuildOptions import GuildOptions
+from App.Scene.Menu.Local.Selector import Selector
 from App.Scene.Menu.Local.Positioning import *
+from App.Scene.Menu.Local.GameEvent import *
+from App.Scene.Scene import Scene
+from App.Screen.Screen import Screen
+from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT
 from logging import warning
 
 class Menu(Scene):
     def __init__(self, screen: Screen) -> None:
         super().__init__(screen)
 
+
     def load_initial_frame(self) -> None:
         try:
             self.background = BackgroundImage(self.screen.get_size())
-            self.background.screen = self.screen
-            self.background.move(*BACKGROUND_POSITION)
-        except Exception as e:
-            warning(f"Failed when loading the menu's background image: {type(e)}")
-            raise e
 
-        try:
             self.banner = Banner("OpenSans", self.screen)
-            self.banner.load("Introbattle!", size=(300, 150), vertex="center", coordinates=(150, 75))
-        except Exception as e:
-            warning("Failed when loading the menu's banner: {type(e)}")
-            raise e
+            self.banner.load("Introbattle!", size=(280, 80), vertex="center", relative_coordinates=(140, 40))
 
-        """
-        try:
-            path_to_heros = join("App", "Imagens", "Personagens", "Herois")
-            nomes_herois = [heroi.replace(".png", "") for heroi in listdir(path_to_heros) if isfile(join(path_to_heros, heroi))]
-            self.herois = list()
-            for nome in nomes_herois:
-                heroi = criar_personagem(nome, self.screen)
-                self.herois.append(heroi)
+            self.guild_options = GuildOptions()
 
         except Exception as e:
-            warning("Erro ao carregar opcoes de heroi")
+            warning(f"Failed when loading the menu: {type(e)}")
             raise e
-        """
 
 
     def draw_initial_frame(self) -> None:
         try:
+            self.background.screen = self.screen
+            self.background.move(*BACKGROUND_POSITION)
             self.background.draw()
-        except Exception as e:
-            warning("Failed when drawing the menu's background")
-            raise e
 
-        try:
             self.banner.move(*BANNER_POSITION)
             self.banner.draw()
+
+            self.guild_options.draw(self.screen)
+
+            self.selector = Selector(self.guild_options.get_anchors(), displacement=(0, -10))
+            self.selector.screen = self.screen
+            self.selector.draw()
+            self.keyboard.add_keydown(K_UP, MoveSelectorUp(self.selector))
+            self.keyboard.add_keydown(K_DOWN, MoveSelectorDown(self.selector))
+            self.keyboard.add_keydown(K_LEFT, MoveSelectorLeft(self.selector))
+            self.keyboard.add_keydown(K_RIGHT, MoveSelectorRight(self.selector))
+            self.keyboard.add_keydown(K_z, SelectorGet(self.selector))
         except Exception as e:
-            warning("Failed when drawing the menu's banner")
+            warning("Failed when drawing the menu")
             raise e
-        
-        """
-        try:
-            for index, heroi in enumerate(self.herois):
-                heroi.pintar((100+100*index, 500))
-        except Exception as e:
-            warning("Erro ao desenhar heroi")
-            raise e
-        """
+
 
     def erase(self) -> None:
         try:
