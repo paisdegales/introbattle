@@ -31,7 +31,7 @@ class HeroPortrait(Object):
         then the 'erasor' is also gonna be transparent, thus not erasing a thing
         when needed.
         """
-        # self.set_colorkey(BLACK)
+        #self.set_colorkey(BLACK)
         self.add("image", "topleft", image, (0, 0), None)
         self.add("text", "midtop", text, (self.w/2, self.h), None)
 
@@ -60,6 +60,7 @@ class HeroPortrait(Object):
         self.hero = create_character_image(heroname)
         hero_surf = self.hero.to_surface()
         image.add("hero", "center", hero_surf, (self.w/2, self.h/2), None)
+        image.draw_addons()
 
         return image
 

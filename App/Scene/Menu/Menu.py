@@ -19,7 +19,7 @@ class Menu(Scene):
         try:
             self.background = BackgroundImage(self.screen.get_size())
 
-            self.banner = Banner("OpenSans", self.screen)
+            self.banner = Banner("OpenSans")
             self.banner.load("Introbattle!", size=(280, 80), vertex="center", relative_coordinates=(140, 40))
 
             self.guild_options = GuildOptions()
@@ -35,8 +35,9 @@ class Menu(Scene):
             self.background.move(*BACKGROUND_POSITION)
             self.background.draw()
 
+            self.banner.screen = self.screen
             self.banner.move(*BANNER_POSITION)
-            self.banner.draw()
+            self.banner.draw(transparent=False)
 
             self.guild_options.draw(self.screen)
 

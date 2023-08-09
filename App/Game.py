@@ -4,6 +4,7 @@ from App.Scene.Menu.Menu import Menu
 from App.Screen.GameEvent import EndOfScene
 from pygame.time import Clock
 from logging import warning
+from time import sleep
 
 class Game:
     def __init__(self, display_resolution: tuple[int, int], fps: int = 30, flags: int = 0) -> None:
@@ -42,3 +43,4 @@ class Game:
 
             scene_output = scene.terminate()
             scene.erase()
+            sleep(3)

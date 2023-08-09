@@ -25,18 +25,7 @@ class GuildOptions:
             x = init_x + (w + inter_column_spacing)*rem + second_line_displacement*quot
             y = init_y + (h + inter_line_spacing)*quot
             portrait.move("topleft", (x, y))
-            """
-            after setting the screen and positioning each portrait, they still
-            have to be updated. Why?  this is because each portrait initially
-            has a black background, because of the way the Surface() method
-            works. So in order to sync the portrait's background with the
-            scene's background, we have to update every portrait's surface with
-            the screen's background. If this was not done, then the text of
-            each portrait would have a black rectangle under them and this is
-            not visually delightful/appealing
-            """
-            portrait.update_surface(screen)
-            portrait.draw()
+            portrait.draw(transparent=True)
             w, h = portrait.get_size()
         self.highlight_text(self.heros[0].name)
 
