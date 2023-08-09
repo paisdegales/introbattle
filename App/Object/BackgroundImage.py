@@ -6,3 +6,4 @@ class BackgroundImage(Image):
         w, h = size
         filename = f"{w}x{h}.png"
         super().__init__("Background", filename)
+        self.alias = "Background"

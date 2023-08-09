@@ -62,6 +62,11 @@ class MouseEventHandler:
         self.events[event_type][button].action()
 
 
+class EndOfScene(Exception):
+    def action(self, *args):
+        super().__init__(*args)
+
+
 class CloseGame(GameEvent):
     def action(self) -> None:
         exit()

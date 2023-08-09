@@ -12,6 +12,7 @@ from logging import warning
 class Menu(Scene):
     def __init__(self, screen: Screen) -> None:
         super().__init__(screen)
+        self.player_options: list[str] = list()
 
 
     def load_initial_frame(self) -> None:
@@ -42,11 +43,16 @@ class Menu(Scene):
             self.selector = Selector(self.guild_options.get_anchors(), displacement=(0, -10))
             self.selector.screen = self.screen
             self.selector.draw()
-            self.keyboard.add_keydown(K_UP, MoveSelectorUp(self.selector))
-            self.keyboard.add_keydown(K_DOWN, MoveSelectorDown(self.selector))
-            self.keyboard.add_keydown(K_LEFT, MoveSelectorLeft(self.selector))
-            self.keyboard.add_keydown(K_RIGHT, MoveSelectorRight(self.selector))
-            self.keyboard.add_keydown(K_z, SelectorGet(self.selector))
+            self.keyboard.add_keydown(K_UP, MoveSelectorUp(self.selector, self.guild_options))
+            self.keyboard.add_keydown(K_DOWN, MoveSelectorDown(self.selector, self.guild_options))
+            self.keyboard.add_keydown(K_LEFT, MoveSelectorLeft(self.selector, self.guild_options))
+            self.keyboard.add_keydown(K_RIGHT, MoveSelectorRight(self.selector, self.guild_options))
+            self.keyboard.add_keydown(K_z, SelectorGet(self.selector, self.player_options))
+
+            self.objects.append(self.background)
+            self.objects.append(self.banner)
+            self.objects.append(self.guild_options)
+            self.objects.append(self.selector)
         except Exception as e:
             warning("Failed when drawing the menu")
             raise e
@@ -56,6 +62,21 @@ class Menu(Scene):
         try:
             #self.background.erase()
             self.banner.erase()
+            self.guild_options.erase()
+            self.selector.erase()
         except Exception as e:
             warning("Failed when trying to erase the menu scene!")
             raise e
+
+    def terminate(self) -> list[str]:
+        return self.player_options
+
+
+    def __str__(self) -> str:
+        string = list()
+        string.append("Menu Scene Overview:")
+        for obj in self.objects:
+            string.append(obj.__str__())
+        string = "\n".join(string)
+        return string
+

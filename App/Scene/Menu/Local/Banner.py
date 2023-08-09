@@ -26,4 +26,5 @@ class Banner(Object):
             super().__init__(size, surface.get_flags(), surface.get_bitsize())
             self.screen = self.canvas
             self.add("title", vertex, surface, relative_coordinates, None)
+        self.alias = "Banner"
         self.make_contour(WHITE, 3)

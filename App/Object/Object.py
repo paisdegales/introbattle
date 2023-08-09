@@ -28,6 +28,7 @@ class Object(Surface):
         self.drawn = False
         self.screen = None
         self.addons = dict()
+        self.alias = "Unnamed"
 
 
     @property
@@ -41,6 +42,11 @@ class Object(Surface):
     def screen(self, screen: Surface | None):
         """Defines which surface the Object is gonna be drawn to"""
         self._screen = screen
+        if screen is not None:
+            self._screen_bak = screen.copy()
+            self._screen_bak.blit(screen, (0, 0))
+        else:
+            self._screen_bak = None
 
 
     def move(self, vertex: str, coordinates: tuple[int, int]) -> None:
@@ -59,14 +65,13 @@ class Object(Surface):
 
         self.drawn = True
         self._eraser = self.copy()
-        self._eraser.blit(self.screen, (0, 0), self.rect)
+        self._eraser.blit(self._screen_bak, (0, 0), self.rect)
         self.drawn_area = self.screen.blit(self, self.rect)
         update(self.drawn_area)
 
 
     def erase(self) -> None:
-        if not hasattr(self, "_eraser"):
-            warning("Object cannot be erased before being drawn!")
+        if not self.drawn:
             return
         self.drawn = False
         self.screen.blit(self._eraser, self.drawn_area)
@@ -90,6 +95,7 @@ class Object(Surface):
     def add(self, ref: str, vertex: str, *args, force_update: bool = False) -> None:
         surf, coords, area = args
         obj = Object(surface=surf)
+        obj.alias = ref
         obj.screen = self
         obj.move(vertex, coords)
         self.addons[ref] = obj
@@ -98,8 +104,10 @@ class Object(Surface):
             self.draw()
 
 
-    def remove(self, ref: str, force_update: bool = False) -> None:
+    def remove(self, ref: str, pop: bool = False, force_update: bool = False) -> None:
         self.addons[ref].erase()
+        if pop:
+            self.addons.pop(ref)
         if force_update:
             self.draw()
 
@@ -115,3 +123,24 @@ class Object(Surface):
         surface = Surface(self.get_size(), self.get_flags(), self.get_bitsize())
         surface.blit(self, (0, 0))
         return surface
+
+
+    @property
+    def alias(self) -> str:
+        return self.__alias
+
+
+    @alias.setter
+    def alias(self, alias: str) -> None:
+        self.__alias = alias
+
+
+    def __str__(self) -> str:
+        return "{} object, placed inside {} surface, 'topleft' vertex at {}, currently drawn: {}, addons: {}".format(self.alias, self.screen.get_size(), self.rect.topleft, "yes" if self.drawn else "no", self.addons.keys())
+
+
+    def update_surface(self, surface: Surface) -> None:
+        self.erase()
+        self.blit(surface, (0, 0), self.rect)
+        for addon in self.addons.values():
+            addon.draw()

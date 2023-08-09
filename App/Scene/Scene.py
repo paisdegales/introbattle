@@ -20,8 +20,10 @@ class Scene:
 
         self.quit = CloseGame()
 
+        self.objects = list()
 
-    def load_initial_frame(self) -> None:
+
+    def load_initial_frame(self, *args) -> None:
         raise NotImplementedError()
 
 
@@ -42,6 +44,11 @@ class Scene:
                 err.add_note(f"Scene failed at check_events: {type(err)=}")
                 raise err
 
+    def terminate(self) -> None:
+        raise NotImplementedError()
 
     def erase(self) -> None:
+        raise NotImplementedError()
+
+    def __str__(self) -> None:
         raise NotImplementedError()
