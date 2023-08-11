@@ -42,12 +42,12 @@ class Object(Surface):
     def screen(self, screen: Surface | None):
         """ Defines which surface the Object is gonna be drawn to
 
-            Be aware: this property does not keep track of all the
-            changes the 'screen' argument might go through after this
-            method terminates. Prefer to only set the screen to be drawn
-            when the object is about to call the 'draw' method. Otherwise
-            the code might be error-bug-prone and calls to the 'erase' method
-            might not work properly/as expected.
+            Be aware: this property does not keep track of all the changes the
+            'screen' argument might go through after this method terminates.
+            Prefer to only set the screen to be drawn when the object is about
+            to call the 'draw' method. Otherwise the code might be
+            error-bug-prone and calls to the 'erase' method might not work
+            properly/as expected.
         """
         self._screen = screen
         if screen is not None:
@@ -90,6 +90,7 @@ class Object(Surface):
 
         # all surface's addons are attached first
         self.draw_addons()
+
         # the final surface gets now drawn onto the screen
         self.drawn_area = self.screen.blit(self, self.rect)
         update(self.drawn_area)
@@ -148,7 +149,15 @@ class Object(Surface):
 
     def toggle_addon(self, ref: str) -> None:
         if self.addons[ref].drawn:
-            self.addons[ref].erase()
+            # self.addons[ref].erase()
+            addon = self.addons[ref]
+            # since the 'draw' method draws all addons of the object, we need to
+            # remove the addon first, so that the 'draw' method does not repaint it right after.
+            # the 'draw' method for the 'addon' itself does not update the screen, since its
+            # screen is the object's surface, not the actual screen
+            self.remove(ref, pop=True, force_update=True)
+            self.draw()
+            self.add(ref, "topleft", addon.to_surface(), addon.rect.topleft, None)
         else:
             self.addons[ref].draw()
 

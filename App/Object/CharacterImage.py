@@ -51,10 +51,12 @@ class PriestImage(HeroImage):
 class SkullImage(EnemyImage):
     def __init__(self):
         super().__init__("Skull.png")
+        self.flip(True, False)
 
 class MageImage(EnemyImage):
     def __init__(self):
         super().__init__("Mage.png")
+        self.flip(True, False)
 
 def create_character_image(character_name: str) -> CharacterImage | None:
     match character_name:

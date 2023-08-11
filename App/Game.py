@@ -1,6 +1,7 @@
 from App.Screen.Screen import Screen
 from App.Scene.Scene import Scene
 from App.Scene.Menu.Menu import Menu
+from App.Scene.Battle.Battle import Battle
 from App.Screen.GameEvent import EndOfScene
 from pygame.time import Clock
 from logging import warning
@@ -14,7 +15,8 @@ class Game:
         self.fps = fps
 
     def load_scenes(self) -> None:
-        self.scenes.append(Menu(self.screen))
+        #self.scenes.append(Menu(self.screen))
+        self.scenes.append(Battle(self.screen))
     
     def run(self) -> None:
         if len(self.scenes) == 0:
@@ -22,12 +24,14 @@ class Game:
             return
 
         scene_output = list()
+        scene_output = ["Paladin", "Wizard", "Hunter"]
         for scene in self.scenes:
             # the output of the last scene serves as input to the next scene
             scene_input = scene_output
             scene.load_initial_frame(*scene_input)
             scene.draw_initial_frame()
             # print(scene)
+            scene_output.clear()
 
             while True:
                 try:
@@ -43,4 +47,3 @@ class Game:
 
             scene_output = scene.terminate()
             scene.erase()
-            sleep(3)
