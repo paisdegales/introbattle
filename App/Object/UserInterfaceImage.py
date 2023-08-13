@@ -20,7 +20,7 @@ class AssembledUserInterfaceImage(Object):
         right_piece = UserInterfaceImage(right_piece)
 
         width = central_piece.rect.width+left_piece.rect.width+right_piece.rect.width
-        height = max(central_piece.rect.width, left_piece.rect.width, right_piece.rect.width)
+        height = max(central_piece.rect.height, left_piece.rect.height, right_piece.rect.height)
         super().__init__((width,height))
 
         self.add("left piece", "topleft", left_piece.to_surface(), (0, 0), None)

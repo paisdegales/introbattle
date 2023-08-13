@@ -1,34 +1,9 @@
-from App.Object.UserInterfaceImage import ArrowImage
+from App.Object.Selector import DefaultSelector
 from logging import warning
 
-class Selector(ArrowImage):
+class MenuSelector(DefaultSelector):
     def __init__(self, anchors: dict[str, tuple[int, int]], displacement: tuple[int, int]):
-        super().__init__()
-        self.alias = "Select indicator"
-        self.anchors: dict[str, tuple[int, int]] = anchors
-        self.mnemonic: dict[int, str] = dict()
-        for index, k in enumerate(self.anchors.keys()):
-            x, y = self.anchors[k] 
-            self.anchors[k] = (x + displacement[0], y + displacement[1])
-            self.mnemonic[index] = k
-        self.current = 0
-        self.max = len(self.mnemonic.keys())
-        self.move_index(0)
-
-
-    def get_current_ref(self) -> str:
-        return self.mnemonic[self.current]
-
-
-    def move_index(self, index: int) -> None:
-        self.move(self.mnemonic[index])
-
-
-    def move(self, anchor: str) -> None:
-        if anchor not in self.anchors.keys():
-            warning("Error when moving selector!")
-            return
-        self.rect.midbottom = self.anchors[anchor]
+        super().__init__(anchors, displacement)
 
 
     def right(self) -> None:

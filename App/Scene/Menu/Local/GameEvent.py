@@ -1,6 +1,6 @@
 from App.Screen.GameEvent import GameEvent, EndOfScene
 from App.Object.Object import Object
-from App.Scene.Menu.Local.Selector import Selector
+from App.Object.Selector import Selector
 
 
 class MoveSelectorRight(GameEvent):

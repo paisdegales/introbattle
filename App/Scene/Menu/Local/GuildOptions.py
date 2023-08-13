@@ -21,11 +21,10 @@ class GuildOptions:
         max_cols = 2
         for index, portrait in enumerate(self.portraits.values()):
             quot, rem = divmod(index, per_line)
-            portrait.screen = screen
             x = init_x + (w + inter_column_spacing)*rem + second_line_displacement*quot
             y = init_y + (h + inter_line_spacing)*quot
             portrait.move("topleft", (x, y))
-            portrait.draw(transparent=True)
+            portrait.draw(screen=screen, transparent=True)
             w, h = portrait.get_size()
         self.highlight_text(self.heros[0].name)
 
@@ -44,11 +43,13 @@ class GuildOptions:
 
     def highlight_text(self, heroname: str) -> None:
         self.portraits[heroname].highlight_text()
+        self.portraits[heroname].erase()
         self.portraits[heroname].draw()
 
 
     def unhighlight_text(self, heroname: str) -> None:
         self.portraits[heroname].unhighlight_text()
+        self.portraits[heroname].erase()
         self.portraits[heroname].draw()
 
 

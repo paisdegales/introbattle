@@ -24,11 +24,11 @@ class HeroPortrait(Object):
         rectangle by default, and the black color can be set transparent if the
         colorkey is set to black. Eventhough ideal, this cannot be done because
         setting the whole rectangle to transparent makes the 'erase' method for
-        addons useless. Explanation for this: the 'erasor' attr is created when
+        addons useless. Explanation for this: the 'eraser' attr is created when
         'draw' is called, by copying the surface's screen and keeping track of
         what would be beneath the surface to be drawn. For addons, the screen
         would be the Object's surface itself, but if this surface is transparent,
-        then the 'erasor' is also gonna be transparent, thus not erasing a thing
+        then the 'eraser' is also gonna be transparent, thus not erasing a thing
         when needed.
         """
         #self.set_colorkey(BLACK)
@@ -72,7 +72,7 @@ class HeroPortrait(Object):
 
 
     def highlight_text(self):
-        self.remove("text", pop=True, force_update=True)
+        self.remove("text", pop=True, force_update=False)
         text = self.load_text("Bold")
         self.add("text", "midtop", text, (self.w/2, self.h), None)
 

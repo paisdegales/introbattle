@@ -48,6 +48,15 @@ class Object(Surface):
             to call the 'draw' method. Otherwise the code might be
             error-bug-prone and calls to the 'erase' method might not work
             properly/as expected.
+
+            Known bug: the '_screen_bak' attr might get overriden with sucessive calls to
+            the 'draw' method. This is not the expected behavior, since this could lead
+            to an ineffective 'erase' method call. The reason for this, is that if the
+            '_screen_bak' attr gets updated after the Object is already drawn, then 
+            it will actually be a copy of the Object it self before the update!
+            In this sense, the '_screen_bak' attr should only be set once, or the drawing
+            process could be better designed to ensure that then '_screen_bak' only changes
+            when the screen passed is actually a **different** screen
         """
         self._screen = screen
         if screen is not None:
@@ -58,7 +67,7 @@ class Object(Surface):
 
 
     def move(self, vertex: str, coordinates: tuple[int, int]) -> None:
-        """Moves a certain vertex of the Object to a given coordinate"""
+        """Moves a certain vertex of the Object to a given coordinate on the screen where it'll be drawn"""
         setattr(self.rect, vertex, coordinates)
 
 
@@ -67,7 +76,13 @@ class Object(Surface):
         return self.screen.get_rect().contains(self.rect)
 
 
-    def draw(self, transparent: bool = False) -> None:
+    def draw(self, screen: Surface | None = None, transparent: bool = False) -> None:
+        # if a screen to be drawn to is passed, then use it. Otherwise, try to use the
+        # existing one (which **might** be stored in self.screen). If no screen was set
+        # up until this moment, then an Exception is going to be thrown;
+        if screen is not None:
+            self.screen = screen
+
         if not self.fits():
             raise OutOfBoundary("The object cannot be drawn because it's exceeds the surface's limits", self.rect, self.screen.get_rect())
 
@@ -98,8 +113,7 @@ class Object(Surface):
 
     def draw_addons(self) -> None:
         for addon in self.addons.values():
-            addon.screen = self
-            addon.draw()
+            addon.draw(screen=self)
 
 
     def erase(self) -> None:
@@ -144,7 +158,7 @@ class Object(Surface):
         if pop:
             self.addons.pop(ref)
         if force_update:
-            self.draw()
+            self.draw(self.screen)
 
 
     def toggle_addon(self, ref: str) -> None:

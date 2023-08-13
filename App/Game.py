@@ -15,7 +15,7 @@ class Game:
         self.fps = fps
 
     def load_scenes(self) -> None:
-        #self.scenes.append(Menu(self.screen))
+        self.scenes.append(Menu(self.screen))
         self.scenes.append(Battle(self.screen))
     
     def run(self) -> None:
@@ -24,7 +24,7 @@ class Game:
             return
 
         scene_output = list()
-        scene_output = ["Paladin", "Wizard", "Hunter"]
+        #scene_output = ["Paladin", "Wizard", "Hunter"]
         for scene in self.scenes:
             # the output of the last scene serves as input to the next scene
             scene_input = scene_output
