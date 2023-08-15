@@ -18,10 +18,8 @@ class Menu(Scene):
     def load_initial_frame(self) -> None:
         try:
             self.background = BackgroundImage(self.screen.get_size())
-
             self.banner = Banner("OpenSans")
             self.banner.load("Introbattle!", size=(280, 80), vertex="center", relative_coordinates=(140, 40))
-
             self.guild_options = GuildOptions()
 
         except Exception as e:

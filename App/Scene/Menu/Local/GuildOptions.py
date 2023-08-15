@@ -43,13 +43,13 @@ class GuildOptions:
 
     def highlight_text(self, heroname: str) -> None:
         self.portraits[heroname].highlight_text()
-        self.portraits[heroname].erase()
+        #self.portraits[heroname].toggle_addon("text")
         self.portraits[heroname].draw()
 
 
     def unhighlight_text(self, heroname: str) -> None:
         self.portraits[heroname].unhighlight_text()
-        self.portraits[heroname].erase()
+        #self.portraits[heroname].toggle_addon("text")
         self.portraits[heroname].draw()
 
 

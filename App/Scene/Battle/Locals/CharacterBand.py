@@ -12,14 +12,13 @@ class CharacterBand:
 
     def draw(self, screen: Surface) -> None:
         for character in self.characters:
-            character.screen = screen
-            character.draw()
+            character.draw(screen=screen, transparent=True)
 
 
     def get_positions(self) -> dict[str, tuple[int,int]]:
         positions = dict()
         for character in self.characters:
-            positions[character.character.name] = character.rect.topleft
+            positions[character.character.name] = character.rect.midtop
         return positions
 
 
@@ -39,5 +38,5 @@ class EnemyBand(CharacterBand):
         enemies = ["Skull", "Mage"]
         super().__init__(enemies)
         self.enemies = self.characters
-        self.enemies[0].move("topleft", (600, 350))
-        self.enemies[1].move("topleft", (650, 200))
+        self.enemies[0].move("topleft", (700, 350))
+        self.enemies[1].move("topleft", (750, 200))

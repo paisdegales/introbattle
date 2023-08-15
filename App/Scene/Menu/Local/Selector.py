@@ -1,5 +1,4 @@
 from App.Object.Selector import DefaultSelector
-from logging import warning
 
 class MenuSelector(DefaultSelector):
     def __init__(self, anchors: dict[str, tuple[int, int]], displacement: tuple[int, int]):

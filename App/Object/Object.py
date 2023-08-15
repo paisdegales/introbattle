@@ -29,6 +29,7 @@ class Object(Surface):
         self.screen = None
         self.addons = dict()
         self.alias = "Unnamed"
+        self._eraser: list[Surface] = list()
 
 
     @property
@@ -49,13 +50,14 @@ class Object(Surface):
             error-bug-prone and calls to the 'erase' method might not work
             properly/as expected.
 
-            Known bug: the '_screen_bak' attr might get overriden with sucessive calls to
-            the 'draw' method. This is not the expected behavior, since this could lead
-            to an ineffective 'erase' method call. The reason for this, is that if the
-            '_screen_bak' attr gets updated after the Object is already drawn, then 
-            it will actually be a copy of the Object it self before the update!
-            In this sense, the '_screen_bak' attr should only be set once, or the drawing
-            process could be better designed to ensure that then '_screen_bak' only changes
+            Known bug: the '_screen_bak' attr might get overriden with
+            sucessive calls to the 'draw' method. This is not the expected
+            behavior, since this could lead to an ineffective 'erase' method
+            call. The reason for this, is that if the '_screen_bak' attr gets
+            updated after the Object is already drawn, then it will actually be
+            a copy of the Object it self before the update!  In this sense, the
+            '_screen_bak' attr should only be set once, or the drawing process
+            could be better designed to ensure that '_screen_bak' only changes
             when the screen passed is actually a **different** screen
         """
         self._screen = screen
@@ -93,15 +95,16 @@ class Object(Surface):
         # is not used by itself, because this screen could get dirty as more and more
         # things are drawn into it. Instead, it's used a backup screen surface, which
         # is an identical copy of the screen's surface once it was bounded to this object.
-        self._eraser = self.copy()
-        self._eraser.blit(self._screen_bak, (0, 0), self.rect)
+        beneath_surface = self.copy()
+        beneath_surface.blit(self._screen_bak, (0, 0), self.rect)
+        self._eraser.append(beneath_surface)
 
         # setting this object to become transparent basically means that it should
         # have the same texture as its underlying surface. Since the eraser stores
         # exactly what's under the image, we can use it to camouflage the Object's surface
         # among its background.
         if transparent:
-            self.blit(self._eraser, (0, 0))
+            self.blit(beneath_surface, (0, 0))
 
         # all surface's addons are attached first
         self.draw_addons()
@@ -120,7 +123,8 @@ class Object(Surface):
         if not self.drawn:
             return
         self.drawn = False
-        self.screen.blit(self._eraser, self.drawn_area)
+        beneath_surface = self._eraser.pop()
+        self.screen.blit(beneath_surface, self.drawn_area)
         update(self.drawn_area)
 
 

@@ -14,6 +14,9 @@ class KeyboardEventHandler:
         self.events.update({KEYDOWN: dict(),
                             KEYUP: dict()})
 
+        self.events_bak = dict()
+        self.events_bak.update({KEYDOWN: dict(),
+                                KEYUP: dict()})
 
     def is_keyboard_event(self, event: Event) -> None:
         return event.type in (KEYDOWN, KEYUP)
@@ -25,6 +28,24 @@ class KeyboardEventHandler:
 
     def add_keyup(self, key: int, event: GameEvent) -> None:
         self.events[KEYUP][key] = event
+
+
+    def del_keydown(self, key: int) -> None:
+        self.events[KEYDOWN].pop(key)
+
+
+    def turnoff(self) -> None:
+        self.events_bak[KEYDOWN] = self.events[KEYDOWN].copy()
+        self.events[KEYDOWN].clear()
+        self.events_bak[KEYUP] = self.events[KEYUP].copy()
+        self.events[KEYUP].clear()
+
+
+    def turnon(self) -> None:
+        self.events[KEYDOWN] = self.events_bak[KEYDOWN].copy()
+        self.events_bak[KEYDOWN].clear()
+        self.events[KEYUP] = self.events_bak[KEYUP].copy()
+        self.events_bak[KEYUP].clear()
 
 
     def handle(self, event_type: int, key: int) -> None:
