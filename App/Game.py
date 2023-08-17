@@ -30,7 +30,7 @@ class Game:
             scene_input = scene_output
             scene.load_initial_frame(*scene_input)
             scene.draw_initial_frame()
-            # print(scene)
+            #print(scene)
             scene_output.clear()
 
             while True:

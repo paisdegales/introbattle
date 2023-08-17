@@ -18,6 +18,7 @@ class Selector(Object):
         self.move_index(0)
 
 
+
     def get_current_ref(self) -> str:
         return self.mnemonic[self.current]
 

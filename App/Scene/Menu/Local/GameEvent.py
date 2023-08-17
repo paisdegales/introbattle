@@ -1,10 +1,11 @@
 from App.Screen.GameEvent import GameEvent, EndOfScene
 from App.Object.Object import Object
 from App.Object.Selector import Selector
+from App.Scene.Menu.Local.GuildOptions import GuildOptions
 
 
 class MoveSelectorRight(GameEvent):
-    def __init__(self, selector: Selector, obj):
+    def __init__(self, selector: Selector, obj: GuildOptions):
         self.selector = selector
         self.obj = obj
 
@@ -22,7 +23,7 @@ class MoveSelectorRight(GameEvent):
 
 
 class MoveSelectorLeft(GameEvent):
-    def __init__(self, selector: Selector, obj):
+    def __init__(self, selector: Selector, obj: GuildOptions):
         self.selector = selector
         self.obj = obj
 
@@ -40,7 +41,7 @@ class MoveSelectorLeft(GameEvent):
 
 
 class MoveSelectorUp(GameEvent):
-    def __init__(self, selector: Selector, obj):
+    def __init__(self, selector: Selector, obj: GuildOptions):
         self.selector = selector
         self.obj = obj
 
@@ -58,7 +59,7 @@ class MoveSelectorUp(GameEvent):
 
 
 class MoveSelectorDown(GameEvent):
-    def __init__(self, selector: Selector, obj):
+    def __init__(self, selector: Selector, obj: GuildOptions):
         self.selector = selector
         self.obj = obj
 

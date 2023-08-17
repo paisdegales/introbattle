@@ -68,12 +68,3 @@ class Menu(Scene):
     def terminate(self) -> list[str]:
         return self.player_options
 
-
-    def __str__(self) -> str:
-        string = list()
-        string.append("Menu Scene Overview:")
-        for obj in self.objects:
-            string.append(obj.__str__())
-        string = "\n".join(string)
-        return string
-

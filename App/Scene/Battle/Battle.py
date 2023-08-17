@@ -22,6 +22,7 @@ class Battle(Scene):
 
         self.selector = CharacterSelector(self.heros.get_positions(), (0, -10))
 
+
         #obj = AssembledUserInterfaceImage("introcomp_balao 1.png")
         #obj.move("topleft", (500, 500))
         #obj.screen = self.screen

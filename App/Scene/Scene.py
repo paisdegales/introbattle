@@ -50,5 +50,10 @@ class Scene:
     def erase(self) -> None:
         raise NotImplementedError()
 
-    def __str__(self) -> None:
-        raise NotImplementedError()
+    def __str__(self) -> str:
+        string = list()
+        string.append("Menu Scene Overview:")
+        for obj in self.objects:
+            string.append(obj.__str__())
+        string = "\n".join(string)
+        return string

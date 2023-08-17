@@ -28,9 +28,9 @@ class HeroBand(CharacterBand):
             return
         super().__init__(heros)
         self.heros = self.characters
-        self.heros[0].move("topleft", (200, 400))
+        self.heros[0].move("topleft", (200, 370))
         self.heros[1].move("topleft", (200, 200))
-        self.heros[2].move("topleft", (300, 300))
+        self.heros[2].move("topleft", (300, 270))
 
 
 class EnemyBand(CharacterBand):

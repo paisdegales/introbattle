@@ -6,7 +6,7 @@ from logging import warning
 
 class FontFamily():
     """
-        Class responsible standing for font families used in this project (OpenSans, Arial ...)
+        Class responsible for all font families used in this project (OpenSans, Arial ...)
     """
     def __init__(self, family_name: str) -> None:
         if get_init() == False:

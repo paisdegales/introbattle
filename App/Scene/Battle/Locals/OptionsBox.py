@@ -1,6 +1,8 @@
 from App.Object.Object import Object
 from App.Setup.Globals import LIGHT_GRAY, WHITE, DARK_GRAY, GRAY, BLACK
 from App.Font.Family import FontFamily
+from App.Scene.Battle.Locals.FightingCharacter import FightingCharacter
+from App.Scene.Battle.Locals.OptionsSelector import OptionsSelector
 from pygame.surface import Surface
 
 class OptionsBoxState(Object):
@@ -27,7 +29,7 @@ class OptionsBoxStateIDLE(OptionsBoxState):
         self.add("text", "center", surface, relative_coordinates, None)
 
 
-    def erase(self):
+    def erase(self) -> None:
         self.remove("text", pop=True, force_update=True)
         
 
@@ -45,7 +47,25 @@ class OptionsBoxStateSelectingAction(OptionsBoxState):
 
         surface = self.font.render("Bold", "Defend", fontsize, BLACK, None)
         displacement = x2, height
-        self.add("defense", "center", surface, displacement, None)
+        self.add("defend", "center", surface, displacement, None)
+
+        positions = self.get_addons_positions("midleft", mode="absolute")
+        positions.pop("little_box_topleft")
+        positions.pop("little_box_topright")
+        positions.pop("little_box_bottomleft")
+        positions.pop("little_box_bottomright")
+        self.option_selector = OptionsSelector(positions, (-10, 6))
+
+
+    def draw(self, screen: Surface) -> None:
+        super().draw(screen=screen)
+        self.option_selector.draw(screen=screen)
+
+
+    def erase(self) -> None:
+        self.remove("attack", pop=True, force_update=True)
+        self.remove("defend", pop=True, force_update=True)
+        self.option_selector.erase()
 
 
 class OptionsBoxStateSelectingOptions(OptionsBoxState):
@@ -53,24 +73,50 @@ class OptionsBoxStateSelectingOptions(OptionsBoxState):
         super().__init__("OpenSans")
 
 
+    def load(self, fighter: FightingCharacter) -> None:
+        fontsize = 30
+        height = self.rect.h/4
+        x1 = self.rect.w/4
+        x2 = 3*x1
+
+        for index, attack in enumerate(fighter.attacks):
+            surface = self.font.render("Bold", attack.name, fontsize, BLACK, None)
+            quoc, rest = divmod(index, 2)
+            displacement = x2 if rest else x1, height * quoc
+            self.add(attack.name, "center", surface, displacement, None)
+
+
+    def erase(self) -> None:
+        pass
+
+
+
 class OptionsBox:
     def __init__(self, screen: Surface):
         self.screen = screen
-        self.states = [OptionsBoxStateIDLE(), OptionsBoxStateSelectingAction(), OptionsBoxStateSelectingOptions]
+        self.states: list[OptionBoxState] = [OptionsBoxStateIDLE(), OptionsBoxStateSelectingAction(), OptionsBoxStateSelectingOptions()]
         self.current_state = 0
         self.state = self.states[0]
         self.number_states = len(self.states)
 
 
-    def draw(self):
+    def get_positions(self, vertex: str) -> dict[str, tuple[int, int]]:
+        return self.state.get_addons_positions(vertex)
+
+
+    def draw(self) -> None:
         self.state.draw(screen=self.screen)
 
  
-    def erase(self):
+    def erase(self) -> None:
         self.state.erase()
 
 
-    def next_state(self):
+    def load(self, *args) -> None:
+        self.state.load(*args)
+
+    
+    def next_state(self) -> None:
         self.current_state += 1
         self.current_state %= self.number_states
         self.state = self.states[self.current_state]

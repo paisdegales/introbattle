@@ -202,5 +202,18 @@ class Object(Surface):
 
     def update_surface(self, surface: Surface) -> None:
         self.erase()
-        self.blit(surface, (0, 0), self.rect)
+        self.blit(surface, (0, 0))
         self.draw_addons()
+
+
+    def get_addons_positions(self, vertex: str, mode: str = "absolute") -> dict[str, tuple[int, int]]:
+        positions = dict()
+        for name, addon in self.addons.items():
+            x1, y1 = getattr(self.rect, "topleft")
+            x2, y2 = getattr(addon.rect, vertex)
+            if mode == "absolute":
+                positions[name] = x1+x2, y1+y2
+            else:
+                positions[name] = x2, y2
+        return positions
+
