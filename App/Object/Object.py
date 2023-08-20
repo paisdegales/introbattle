@@ -17,55 +17,104 @@ class OutOfBoundary(Exception):
         super().__init__(*args)
 
 
-class Object(Surface):
-    def __init__(self, *args, surface: Surface = None):
+class Object:
+    """
+        brief summary of all Object's attributes:
+
+        self.surface: pygame.surface.Surface
+            This is the surface which contains what will be drawn onto the screen
+
+        self.rect: pygame.rect.Rect
+            This rectangle serves the purpose of positioning the Object's surface.
+            The coordinates are relative to the 'screen' attr
+            It has the same size as the surface itself.
+
+        self.draw: bool
+            This flag tells if the Object is currently drawn on the display or not
+
+        self.screen: pygame.surface.Surface
+            This is the screen on which the 'surface' attr will be drawn to
+
+        self.addons: dict[Object]
+            A addon is simply another Object, which belongs to the current Object.
+            Addons are positioned relative to its parent's surface.
+
+        self.alias: str
+            This is the name to identify this instance of Object when printing it
+
+        self.drawn_areas: list[pygame.rect.Rect]
+            This is a list which keeps track of all positions where the surface got drawn onto the screen.
+
+        self.beneath:
+            This is a list which keeps track of what was beneath the surface when it got drawn onto the screen.
+
+        self.camouflage: bool
+            This flag indicates if the Object should have the same background as its screen when it gets drawn onto it.
+
+        self.__screen_bak: pygame.surface.Surface
+            This is an identical copy of the screen as soon as it was bounded to this object.
+            This copy should never be modified, as it serves the sole purpose of being the
+            surface to be used by the 'erase' method.
+    """
+
+    def __init__(self, size: tuple[int, int], flags: int = 0, depth: int | None = None, surface: Surface | None = None):
         if surface is None:
-            super().__init__(*args)
+            self.surface = Surface(size, flags, depth)
         else:
-            super().__init__(surface.get_size(), surface.get_flags(), surface.get_bitsize())
-            self.blit(surface, (0, 0))
-        self.rect = Rect((0,0), self.get_size())
+            self.surface = Surface(surface.get_size(), surface.get_flags(), surface.get_bitsize())
+            self.surface.blit(surface, (0, 0))
+        self.rect = Rect((0, 0), self.surface.get_size())
         self.drawn = False
+        self.screen_bak = None
         self.screen = None
         self.addons = dict()
+        self.drawn_areas: list[Rect] = list()
+        self.beneath: list[Surface] = list()
         self.alias = "Unnamed"
-        self._eraser: list[Surface] = list()
+        self.camouflage = False
+
+
+    def __str__(self) -> str:
+        string = \
+        """{} Object
+        Placed inside {} surface
+        'topleft' vertex at {}
+        Currently drawn: {}
+        Addons: {}""".format(
+            self.alias,
+            "undefined" if not hasattr(self, "__screen") else self.screen.get_size(),
+            self.rect.topleft,
+            "yes" if self.drawn else "no", self.addons.keys()
+        )
+        return string
 
 
     @property
     def screen(self):
-        if self._screen is None:
+        if self.__screen is None:
             raise UndefinedScreen("The object is missing its drawing surface!")
-        return self._screen
+        return self.__screen
 
 
     @screen.setter
     def screen(self, screen: Surface | None):
-        """ Defines which surface the Object is gonna be drawn to
+        self.__screen = screen
+        if self.screen_bak is None:
+            self.screen_bak = screen
 
-            Be aware: this property does not keep track of all the changes the
-            'screen' argument might go through after this method terminates.
-            Prefer to only set the screen to be drawn when the object is about
-            to call the 'draw' method. Otherwise the code might be
-            error-bug-prone and calls to the 'erase' method might not work
-            properly/as expected.
 
-            Known bug: the '_screen_bak' attr might get overriden with
-            sucessive calls to the 'draw' method. This is not the expected
-            behavior, since this could lead to an ineffective 'erase' method
-            call. The reason for this, is that if the '_screen_bak' attr gets
-            updated after the Object is already drawn, then it will actually be
-            a copy of the Object it self before the update!  In this sense, the
-            '_screen_bak' attr should only be set once, or the drawing process
-            could be better designed to ensure that '_screen_bak' only changes
-            when the screen passed is actually a **different** screen
-        """
-        self._screen = screen
-        if screen is not None:
-            self._screen_bak = screen.copy()
-            self._screen_bak.blit(screen, (0, 0))
-        else:
-            self._screen_bak = None
+    @property
+    def screen_bak(self):
+        return self.__screen_bak
+
+
+    @screen_bak.setter
+    def screen_bak(self, screen: Surface | None):
+        if screen is None:
+            self.__screen_bak = None
+            return
+        self.__screen_bak = screen.copy()
+        self.__screen_bak.blit(screen, (0, 0))
 
 
     def move(self, vertex: str, coordinates: tuple[int, int]) -> None:
@@ -73,145 +122,130 @@ class Object(Surface):
         setattr(self.rect, vertex, coordinates)
 
 
+    def make_contour(self, color: Color, thickness: int) -> None:
+        line(self.surface, color, self.surface.get_rect().bottomleft, self.surface.get_rect().topleft, width=thickness)
+        line(self.surface, color, self.surface.get_rect().topleft, self.surface.get_rect().topright, width=thickness)
+        line(self.surface, color, self.surface.get_rect().topright, self.surface.get_rect().bottomright, width=thickness+2)
+        line(self.surface, color, self.surface.get_rect().bottomright, self.surface.get_rect().bottomleft, width=thickness+2)
+
+
     def fits(self) -> bool:
         """Checks if the Object can be drawn to its drawing surface in its current position"""
         return self.screen.get_rect().contains(self.rect)
 
 
-    def draw(self, screen: Surface | None = None, transparent: bool = False) -> None:
-        # if a screen to be drawn to is passed, then use it. Otherwise, try to use the
-        # existing one (which **might** be stored in self.screen). If no screen was set
-        # up until this moment, then an Exception is going to be thrown;
+    def draw(self, screen: Surface | None = None, info: str = "") -> None:
+        """
+            draws the configured surface and its addons on another surface
+
+            if the screen supplied is None, then the 'draw' method tries to use the 'screen' attr, if it exists. Otherwise UndefinedScreen will be thrown.
+        """
         if screen is not None:
             self.screen = screen
 
         if not self.fits():
-            raise OutOfBoundary("The object cannot be drawn because it's exceeds the surface's limits", self.rect, self.screen.get_rect())
+            raise OutOfBoundary("The object cannot be drawn because it exceeds the surface's limits", self.rect, self.screen.get_rect())
+
+        if self.drawn:
+            return
 
         self.drawn = True
-        # the eraser stores what will be beneath the Object after it gets drawn.
-        # to create the eraser, first we need to store what's currently on the
-        # position where the Object will be drawn. Notice that the screen's surface
-        # is not used by itself, because this screen could get dirty as more and more
-        # things are drawn into it. Instead, it's used a backup screen surface, which
-        # is an identical copy of the screen's surface once it was bounded to this object.
-        beneath_surface = self.copy()
-        beneath_surface.blit(self._screen_bak, (0, 0), self.rect)
-        self._eraser.append(beneath_surface)
+
+        # store what will be beneath the Object after it gets drawn onto the screen
+        ## creates a surface of the same size as the Object
+        beneath_surface = self.surface.copy()
+        ## save what's currently in the position where the Object will be blitted
+        beneath_surface.blit(self.screen, (0, 0), self.rect)
+        self.beneath.append(beneath_surface)
 
         # setting this object to become transparent basically means that it should
-        # have the same texture as its underlying surface. Since the eraser stores
-        # exactly what's under the image, we can use it to camouflage the Object's surface
-        # among its background.
-        if transparent:
-            self.blit(beneath_surface, (0, 0))
+        # have the same texture as its underlying surface.
+        if self.camouflage:
+            self.surface.blit(beneath_surface, (0, 0))
 
-        # all surface's addons are attached first
-        self.draw_addons()
-
-        # the final surface gets now drawn onto the screen
-        self.drawn_area = self.screen.blit(self, self.rect)
-        update(self.drawn_area)
-
-
-    def draw_addons(self) -> None:
         for addon in self.addons.values():
-            addon.draw(screen=self)
+            addon.draw(screen=self.surface, info="drawn onto '{}'".format(self.alias))
+
+        drawn_area = self.screen.blit(self.surface, self.rect)
+        self.drawn_areas.append(drawn_area)
+        update(drawn_area)
+
+        print("DRAW", self.alias, f"topleft relative position: {self.rect.topleft}", f"size: {self.surface.get_size()}", info, sep="\n\t")
 
 
-    def erase(self) -> None:
+    def erase(self, info: str = "") -> Rect:
+        """
+            Erases the Object according to what's saved in the backup screen
+        """
         if not self.drawn:
             return
-        self.drawn = False
-        beneath_surface = self._eraser.pop()
-        self.screen.blit(beneath_surface, self.drawn_area)
-        update(self.drawn_area)
+
+        for addon in self.addons.values():
+            addon.erase(info="erased from '{}'".format(self.alias))
+
+        last_drawn_area = self.drawn_areas.pop()
+        self.beneath.pop()
+        self.screen.blit(self.screen_bak, last_drawn_area, last_drawn_area)
+        update(last_drawn_area)
+
+        if not len(self.drawn_areas):
+            self.drawn = False
+
+        print("ERASE", self.alias, info, f"area erased: {self.surface.get_size()}", sep="\n\t")
+
+        return last_drawn_area
 
 
-    def toggle(self) -> None:
-        if self.drawn:
-            self.erase()
-        else:
-            self.draw()
+    def undo(self) -> Rect:
+        """
+            Restores what was drawn in the screen before the 'draw' method was called
+        """
+        if not self.drawn:
+            return
+        for addon in self.addons.values():
+            addon.undo()
+        last_drawn_area = self.drawn_areas.pop()
+        surf_beneath = self.beneath.pop()
 
+        self.screen.blit(surf_beneath, last_drawn_area)
+        update(last_drawn_area)
 
-    def make_contour(self, color: Color, thickness: int) -> None:
-        line(self, color, self.get_rect().bottomleft, self.get_rect().topleft, width=thickness)
-        line(self, color, self.get_rect().topleft, self.get_rect().topright, width=thickness)
-        line(self, color, self.get_rect().topright, self.get_rect().bottomright, width=thickness+2)
-        line(self, color, self.get_rect().bottomright, self.get_rect().bottomleft, width=thickness+2)
+        if not len(self.beneath):
+            self.drawn = False
 
+        return last_drawn_area
 
-    def add(self, ref: str, vertex: str, *args) -> None:
-        surf, coords, area = args
-        obj = Object(surface=surf)
-        obj.alias = ref
-        # notice that the 'screen' attribute of the just created obj was not set here,
-        # but it's later defined when the 'draw_addons' method gets called. Why is that?
-        # The reason for this is that the parental object (whose addons belong to) might
-        # not be ready to be drawn onto the screen just yet as new addons get added.
-        # To work this around, the 'screen' attribute is only set when the objects need
-        # to be drawn. This also makes sense, since there's no point for rushing and setting
-        # the addons' surfaces just yet.
-        obj.move(vertex, coords)
-        self.addons[ref] = obj
+    def add(self, ref: str, another_obj) -> None:
+        """
+            adds a new addon to this Object
+        """
+        another_obj.alias = ref
+        self.addons[ref] = another_obj
 
 
     def remove(self, ref: str, pop: bool = False, force_update: bool = False) -> None:
-        self.addons[ref].erase()
+        if ref not in self.addons.keys():
+            return 
+
+        addon = self.addons[ref]
+        if not addon.drawn or not self.drawn:
+            return
+
+        drawn_area = addon.erase(f"removed from '{self.alias}'")
         if pop:
             self.addons.pop(ref)
         if force_update:
-            self.draw(self.screen)
-
-
-    def toggle_addon(self, ref: str) -> None:
-        if self.addons[ref].drawn:
-            # self.addons[ref].erase()
-            addon = self.addons[ref]
-            # since the 'draw' method draws all addons of the object, we need to
-            # remove the addon first, so that the 'draw' method does not repaint it right after.
-            # the 'draw' method for the 'addon' itself does not update the screen, since its
-            # screen is the object's surface, not the actual screen
-            self.remove(ref, pop=True, force_update=True)
-            self.draw()
-            self.add(ref, "topleft", addon.to_surface(), addon.rect.topleft, None)
-        else:
-            self.addons[ref].draw()
-
-
-    def to_surface(self) -> Surface:
-        surface = Surface(self.get_size(), self.get_flags(), self.get_bitsize())
-        surface.blit(self, (0, 0))
-        return surface
-
-
-    @property
-    def alias(self) -> str:
-        return self.__alias
-
-
-    @alias.setter
-    def alias(self, alias: str) -> None:
-        self.__alias = alias
-
-
-    def __str__(self) -> str:
-        return "{} object, placed inside {} surface, 'topleft' vertex at {}, currently drawn: {}, addons: {}".format(self.alias, self.screen.get_size(), self.rect.topleft, "yes" if self.drawn else "no", self.addons.keys())
-
-
-    def update_surface(self, surface: Surface) -> None:
-        self.erase()
-        self.blit(surface, (0, 0))
-        self.draw_addons()
+            x, y = drawn_area.topleft
+            drawn_area = self.screen.blit(self.surface, self.rect.move(x, y), drawn_area)
+            update(drawn_area)
 
 
     def get_addons_positions(self, vertex: str, mode: str = "absolute") -> dict[str, tuple[int, int]]:
         positions = dict()
         for name, addon in self.addons.items():
-            x1, y1 = getattr(self.rect, "topleft")
             x2, y2 = getattr(addon.rect, vertex)
             if mode == "absolute":
+                x1, y1 = getattr(self.rect, "topleft")
                 positions[name] = x1+x2, y1+y2
             else:
                 positions[name] = x2, y2
