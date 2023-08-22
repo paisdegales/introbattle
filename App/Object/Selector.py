@@ -51,4 +51,4 @@ class Selector(Object):
 
 class DefaultSelector(Selector):
     def __init__(self, anchors: dict[str, tuple[int, int]], displacement: tuple[int, int]):
-        super().__init__(ArrowImage().to_surface(), anchors, displacement)
+        super().__init__(ArrowImage().surface, anchors, displacement)

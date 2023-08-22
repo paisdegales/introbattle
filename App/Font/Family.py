@@ -30,20 +30,21 @@ class FontFamily():
         else:
             self.styles[style_name].size = style_size
 
-    def render(self, style: str, text: str, font_size: int, text_color: Color, background_color: Color | None = None) -> Surface:
+    def render(self, style: str, text: str, font_size: int, text_color: Color, background_color: Color | None = None, area: tuple[int,int] | None = None, vertex: str = "center") -> Surface:
         try:
             self.style = (style, font_size)
         except Exception as e:
             warning(f"Failed when attempting to write '{text}'! Failed to fetch/use '{style}'! Make sure the stylename is right and its file exists")
             raise e
 
-        return self.styles[style].render(text, text_color, background_color)
+        return self.styles[style].render(text, text_color, background_color, area, vertex)
 
-    def get_render_size(self, style: str, text: str, size: int) -> tuple[int, int]:
+
+    def get_render_size(self, style: str, text: str, font_size: int) -> tuple[int, int]:
         try:
-            self.style = style, size
+            self.style = style, font_size
         except Exception as e:
-            warning(f"Failed when attempting to write '{text}'! Failed to fetch/use '{style}'! Make sure the stylename is right and its file exists")
+            warning(e.args)
             raise e
 
         return self.styles[style].get_render_size(text)

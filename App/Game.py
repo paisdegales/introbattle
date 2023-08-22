@@ -1,9 +1,10 @@
 from App.Screen.Screen import Screen
-from App.Scene.Scene import Scene
+from App.Scene.Scene import Scene, EndOfScene
 from App.Scene.Menu.Menu import Menu
-from App.Scene.Battle.Battle import Battle
-from App.Screen.GameEvent import EndOfScene
+#from App.Scene.Battle.Battle import Battle
+from pygame.locals import KEYDOWN, MOUSEBUTTONDOWN, QUIT
 from pygame.time import Clock
+from pygame.event import poll, peek, clear, set_blocked, set_allowed, get as get_events
 from logging import warning
 from time import sleep
 
@@ -23,6 +24,11 @@ class Game:
             warning("No game scenes available. The game won't start.")
             return
 
+        # blocking all event types pygame has
+        set_blocked(None)
+        # allowing only a few types
+        set_allowed([MOUSEBUTTONDOWN, KEYDOWN, QUIT])
+
         scene_output = list()
         #scene_output = ["Paladin", "Wizard", "Hunter"]
         for scene in self.scenes:
@@ -35,7 +41,8 @@ class Game:
 
             while True:
                 try:
-                    scene.check_events()
+                    events = get_events()
+                    scene.check_events(events)
                 except EndOfScene as e:
                     info = e.args
                     #print(info)
@@ -43,7 +50,7 @@ class Game:
                 except Exception as e:
                     raise e
 
-                self.clock.tick(self.fps)
+                time_elapsed = self.clock.tick(self.fps)
 
             scene_output = scene.terminate()
             scene.erase()

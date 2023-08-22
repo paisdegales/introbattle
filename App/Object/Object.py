@@ -4,7 +4,6 @@ from pygame.draw import line
 from pygame.color import Color
 from pygame.display import update
 from pygame.transform import scale_by, flip
-from logging import warning
 
 
 class UndefinedScreen(Exception):
@@ -42,11 +41,11 @@ class Object:
         self.alias: str
             This is the name to identify this instance of Object when printing it
 
-        self.drawn_areas: list[pygame.rect.Rect]
-            This is a list which keeps track of all positions where the surface got drawn onto the screen.
+        self.drawn_area: pygame.rect.Rect
+            This keeps track of the position where the surface got drawn onto the screen.
 
-        self.beneath:
-            This is a list which keeps track of what was beneath the surface when it got drawn onto the screen.
+        self.beneath: pygame.pygame.Surface
+            This keeps track of what was beneath the surface when it got drawn onto the screen.
 
         self.camouflage: bool
             This flag indicates if the Object should have the same background as its screen when it gets drawn onto it.
@@ -57,7 +56,7 @@ class Object:
             surface to be used by the 'erase' method.
     """
 
-    def __init__(self, size: tuple[int, int], flags: int = 0, depth: int | None = None, surface: Surface | None = None):
+    def __init__(self, size: tuple[int, int] = (0, 0), flags: int = 0, depth: int | None = None, surface: Surface | None = None):
         if surface is None:
             self.surface = Surface(size, flags, depth)
         else:
@@ -68,9 +67,10 @@ class Object:
         self.screen_bak = None
         self.screen = None
         self.addons = dict()
-        self.drawn_areas: list[Rect] = list()
-        self.beneath: list[Surface] = list()
+        self.drawn_area = None
+        self.beneath = None
         self.alias = "Unnamed"
+        self.parent = None
         self.camouflage = False
 
 
@@ -122,13 +122,6 @@ class Object:
         setattr(self.rect, vertex, coordinates)
 
 
-    def make_contour(self, color: Color, thickness: int) -> None:
-        line(self.surface, color, self.surface.get_rect().bottomleft, self.surface.get_rect().topleft, width=thickness)
-        line(self.surface, color, self.surface.get_rect().topleft, self.surface.get_rect().topright, width=thickness)
-        line(self.surface, color, self.surface.get_rect().topright, self.surface.get_rect().bottomright, width=thickness+2)
-        line(self.surface, color, self.surface.get_rect().bottomright, self.surface.get_rect().bottomleft, width=thickness+2)
-
-
     def fits(self) -> bool:
         """Checks if the Object can be drawn to its drawing surface in its current position"""
         return self.screen.get_rect().contains(self.rect)
@@ -140,12 +133,18 @@ class Object:
 
             if the screen supplied is None, then the 'draw' method tries to use the 'screen' attr, if it exists. Otherwise UndefinedScreen will be thrown.
         """
-        if screen is not None:
-            self.screen = screen
+        try:
+            if screen is not None:
+                self.screen = screen
+        except UndefinedScreen as e:
+            e.add_note(f"Error when drawing {self.alias}")
+            raise e
 
         if not self.fits():
-            raise OutOfBoundary("The object cannot be drawn because it exceeds the surface's limits", self.rect, self.screen.get_rect())
+            raise OutOfBoundary(f"'{self.alias}' object cannot be drawn because it exceeds the surface's limits", self.rect, self.screen.get_rect())
 
+        # if the Object is already drawn, then why the heck draw it again?
+        # call erase first and then call this again!
         if self.drawn:
             return
 
@@ -156,21 +155,22 @@ class Object:
         beneath_surface = self.surface.copy()
         ## save what's currently in the position where the Object will be blitted
         beneath_surface.blit(self.screen, (0, 0), self.rect)
-        self.beneath.append(beneath_surface)
+        self.beneath = beneath_surface
 
         # setting this object to become transparent basically means that it should
         # have the same texture as its underlying surface.
         if self.camouflage:
             self.surface.blit(beneath_surface, (0, 0))
 
+        # first draw the Object's addons
         for addon in self.addons.values():
             addon.draw(screen=self.surface, info="drawn onto '{}'".format(self.alias))
 
-        drawn_area = self.screen.blit(self.surface, self.rect)
-        self.drawn_areas.append(drawn_area)
-        update(drawn_area)
+        # finally draw the Object to the screen
+        self.drawn_area = self.screen.blit(self.surface, self.rect)
+        update(self.drawn_area)
 
-        print("DRAW", self.alias, f"topleft relative position: {self.rect.topleft}", f"size: {self.surface.get_size()}", info, sep="\n\t")
+        # print("DRAW", self.alias, f"topleft relative position: {self.rect.topleft}", f"size: {self.surface.get_size()}", info, sep="\n\t")
 
 
     def erase(self, info: str = "") -> Rect:
@@ -183,37 +183,17 @@ class Object:
         for addon in self.addons.values():
             addon.erase(info="erased from '{}'".format(self.alias))
 
-        last_drawn_area = self.drawn_areas.pop()
-        self.beneath.pop()
-        self.screen.blit(self.screen_bak, last_drawn_area, last_drawn_area)
-        update(last_drawn_area)
+        drawn_area = self.drawn_area
+        self.screen.blit(self.screen_bak, drawn_area, drawn_area)
+        update(drawn_area)
+        self.drawn_area = None
+        self.beneath = None
+        self.drawn = False
 
-        if not len(self.drawn_areas):
-            self.drawn = False
+        # print("ERASE", self.alias, info, f"area erased: {self.surface.get_size()}", sep="\n\t")
 
-        print("ERASE", self.alias, info, f"area erased: {self.surface.get_size()}", sep="\n\t")
+        return drawn_area
 
-        return last_drawn_area
-
-
-    def undo(self) -> Rect:
-        """
-            Restores what was drawn in the screen before the 'draw' method was called
-        """
-        if not self.drawn:
-            return
-        for addon in self.addons.values():
-            addon.undo()
-        last_drawn_area = self.drawn_areas.pop()
-        surf_beneath = self.beneath.pop()
-
-        self.screen.blit(surf_beneath, last_drawn_area)
-        update(last_drawn_area)
-
-        if not len(self.beneath):
-            self.drawn = False
-
-        return last_drawn_area
 
     def add(self, ref: str, another_obj) -> None:
         """
@@ -228,6 +208,9 @@ class Object:
             return 
 
         addon = self.addons[ref]
+
+        # if the addon is not drawn it cannot be removed once more
+        # if the object itself is not drawn, then the addon cannot be blitted
         if not addon.drawn or not self.drawn:
             return
 
@@ -235,6 +218,7 @@ class Object:
         if pop:
             self.addons.pop(ref)
         if force_update:
+            self.drawn = False
             x, y = drawn_area.topleft
             drawn_area = self.screen.blit(self.surface, self.rect.move(x, y), drawn_area)
             update(drawn_area)
@@ -251,3 +235,18 @@ class Object:
                 positions[name] = x2, y2
         return positions
 
+
+    def scale_by(self, factor: float) -> None:
+        self.surface = scale_by(self.surface, factor)
+        self.rect.update(self.rect.topleft, self.surface.get_size())
+
+
+    def flip(self, x_flip: bool, y_flip: bool) -> None:
+        self.surface = flip(self.surface, x_flip, y_flip)
+
+
+    def make_contour(self, color: Color, thickness: int) -> None:
+        line(self.surface, color, self.surface.get_rect().bottomleft, self.surface.get_rect().topleft, width=thickness)
+        line(self.surface, color, self.surface.get_rect().topleft, self.surface.get_rect().topright, width=thickness)
+        line(self.surface, color, self.surface.get_rect().topright, self.surface.get_rect().bottomright, width=thickness+2)
+        line(self.surface, color, self.surface.get_rect().bottomright, self.surface.get_rect().bottomleft, width=thickness+2)

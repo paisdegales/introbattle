@@ -9,16 +9,6 @@ class CharacterImage(Image):
         self.scale_by(2)
         self.name = character_name.replace(".png", "")
 
-    def scale_by(self, factor: float):
-        surface = scale_by(self, factor)
-        # reinitializing the object's state by calling the parent class of Image, using the __mro__ defined for the class of self
-        super(Image, self).__init__(surface=surface)
-
-    def flip(self, x_flip: bool, y_flip: bool):
-        surface = flip(self, x_flip, y_flip)
-        # reinitializing the object's state by calling the parent class of Image, using the __mro__ defined for the class of self
-        super(Image, self).__init__(surface=surface)
-
 class HeroImage(CharacterImage):
     def __init__(self, hero_name: str):
         super().__init__("Hero", hero_name)
