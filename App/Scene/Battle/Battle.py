@@ -4,8 +4,9 @@ from App.Scene.Battle.Locals.CharacterSelector import CharacterSelector
 from App.Scene.Battle.Locals.Events import *
 from App.Scene.Battle.Locals.OptionsBox import OptionsBox
 from App.Scene.Scene import Scene
-from pygame.locals import K_UP, K_DOWN, K_RETURN
+from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
 from pygame.surface import Surface
+from pygame.event import poll, peek, clear, set_blocked, set_allowed, get as get_events
 
 class Battle(Scene):
     def __init__(self, screen: Surface):
@@ -13,8 +14,6 @@ class Battle(Scene):
 
 
     def load_initial_frame(self, *args) -> None:
-        self.background = BackgroundImage(self.screen.get_size())
-
         heros = args
         self.heros = HeroBand(heros)
         self.enemies = EnemyBand()
@@ -45,6 +44,8 @@ class Battle(Scene):
         self.keyboard.add_keydown(K_DOWN, MoveSelectorDown(self.selector))
         self.keyboard.add_keydown(K_RETURN, SelectHero(self.keyboard, self.options))
 
+        # removing the scene bg (it's the same as the Menu scene and it's already drawn)
+        self.objects.pop()
         self.objects.append(self.options)
         self.objects.append(self.heros)
         self.objects.append(self.enemies)
@@ -55,6 +56,32 @@ class Battle(Scene):
 
     def erase(self) -> None:
         pass
+
+
+    def check_events(self, events: list[Event]) -> None:
+        try:
+            for event in events:
+                if event.type == QUIT:
+                    exit()
+                elif event.type == MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        x, y = get_pos()
+                        print(f"X: {x}, Y: {y}")
+                elif event.type == KEYDOWN:
+                    if event.key == K_UP:
+                        self.selector.up()
+                    elif event.key == K_DOWN:
+                        self.selector.down()
+                    elif event.key == K_LEFT:
+                        self.selector.left()
+                    elif event.key == K_RIGHT:
+                        self.selector.right()
+                    elif event.key == K_z:
+                        self.selector.select(self.player_options)
+            clear()
+        except Exception as err:
+            err.add_note(f"Battle Scene failed at check_events: {type(err)=}")
+            raise err
 
 
     def terminate(self) -> list[str]:

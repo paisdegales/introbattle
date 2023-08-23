@@ -3,7 +3,6 @@ from App.Object.UserInterfaceImage import HealthBar, ManaBar, StaminaBar
 from App.Object.CharacterImage import create_character_image
 from App.Scene.Battle.Locals.FighterAttributes import FighterAttributes
 from App.Scene.Battle.Locals.CharacterAbility import AttackAbility, DefenseAbility
-from pygame.surface import Surface
 
 
 class FightingCharacter(Object):
@@ -14,25 +13,24 @@ class FightingCharacter(Object):
         self.defenses: list[DefenseAbility] = list()
 
         self.hp_img = HealthBar()
-        self.hp_img.screen = Surface(self.hp_img.rect.size)
-        self.hp_img.draw()
-
         self.mp_img = ManaBar()
-        self.mp_img.screen = Surface(self.mp_img.rect.size)
-        self.mp_img.draw()
-
         self.stamina_img = StaminaBar()
-        self.stamina_img.screen = Surface(self.stamina_img.rect.size)
-        self.stamina_img.draw()
 
-        width = max(self.character.rect.width, self.hp_img.rect.width, self.mp_img.rect.width, self.stamina_img.rect.width)
-        height = self.character.rect.height + self.hp_img.rect.height + self.mp_img.rect.height + self.stamina_img.rect.height
+        widths = map(lambda x: x.rect.w, [self.character, self.hp_img, self.mp_img, self.stamina_img])
+        width = max(widths)
+        height = self.character.rect.h + self.hp_img.rect.h + self.mp_img.rect.h + self.stamina_img.rect.h
+
+        self.hp_img.move("midtop", (width/2, 0))
+        self.mp_img.move("midtop", (width/2, self.hp_img.rect.h))
+        self.stamina_img.move("midtop", (width/2, self.hp_img.rect.h + self.mp_img.rect.h))
+        self.character.move("midtop", (width/2, self.hp_img.rect.h + self.mp_img.rect.h + self.stamina_img.rect.h))
+
         super().__init__((width, height))
-
-        self.add("hp", "midtop", self.hp_img.to_surface(), (width/2, 0), None)
-        self.add("mp", "midtop", self.mp_img.to_surface(), (width/2, self.hp_img.rect.h), None)
-        self.add("stamina", "midtop", self.stamina_img.to_surface(), (width/2, self.hp_img.rect.h + self.mp_img.rect.h), None)
-        self.add("character", "bottomleft", self.character.to_surface(), (0, height), None)
+        self.alias = f"Fighting {self.character.name}"
+        self.add("hp",  self.hp_img)
+        self.add("mp",  self.mp_img)
+        self.add("stamina",  self.stamina_img)
+        self.add("character",  self.character)
 
 
 class FightingHunter(FightingCharacter):
@@ -83,3 +81,19 @@ class FightingMage(FightingCharacter):
         super().__init__("Mage", attack=10, defense=10, hp=10, mp=10, stamina=10)
         self.attacks.append(AttackAbility(self.attributes, "Avadakedabra", description=""))
         self.defenses.append(DefenseAbility(self.attributes, "Hocus Pocus", description="", strength=10))
+
+
+def create_fighter_image(name: str) -> FightingCharacter | None:
+    match name:
+        case "Paladin":
+            return FightingPaladin()
+        case "Hunter":
+            return FightingHunter()
+        case "Wizard":
+            return FightingWizard()
+        case "Priest":
+            return FightingPriest()
+        case "Rogue":
+            return FightingRogue()
+        case _:
+            return None

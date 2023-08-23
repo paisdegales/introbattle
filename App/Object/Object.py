@@ -41,6 +41,9 @@ class Object:
         self.alias: str
             This is the name to identify this instance of Object when printing it
 
+        self.parent: Object
+            another instance of Object which possesses this object
+
         self.drawn_area: pygame.rect.Rect
             This keeps track of the position where the surface got drawn onto the screen.
 
@@ -75,17 +78,21 @@ class Object:
 
 
     def __str__(self) -> str:
-        string = \
-        """{} Object
-        Placed inside {} surface
-        'topleft' vertex at {}
-        Currently drawn: {}
-        Addons: {}""".format(
+        string = """\n{} Object\n\tPlaced inside {} surface\n\trelative position: {} (topleft vertex)\n\tCurrently drawn: {}""".format(
             self.alias,
-            "undefined" if not hasattr(self, "__screen") else self.screen.get_size(),
+            "undefined" if self.__screen is None else self.screen.get_size(),
             self.rect.topleft,
-            "yes" if self.drawn else "no", self.addons.keys()
+            "yes" if self.drawn else "no",
         )
+
+        if len(self.addons.values()):
+            addons_str = list()
+            for addon in self.addons.values():
+                addon_str = addon.__str__().replace("\n", "\n\t")
+                addons_str.append(addon_str)
+            addons_str = "\n".join(addons_str).replace("\n", "\n\t")
+            string = f"{string}\n\tAddons:{addons_str}"
+
         return string
 
 
@@ -133,6 +140,12 @@ class Object:
 
             if the screen supplied is None, then the 'draw' method tries to use the 'screen' attr, if it exists. Otherwise UndefinedScreen will be thrown.
         """
+
+        # if the Object is already drawn, then why the heck draw it again?
+        # call erase first and then call this again!
+        if self.drawn:
+            return
+
         try:
             if screen is not None:
                 self.screen = screen
@@ -142,11 +155,6 @@ class Object:
 
         if not self.fits():
             raise OutOfBoundary(f"'{self.alias}' object cannot be drawn because it exceeds the surface's limits", self.rect, self.screen.get_rect())
-
-        # if the Object is already drawn, then why the heck draw it again?
-        # call erase first and then call this again!
-        if self.drawn:
-            return
 
         self.drawn = True
 
@@ -200,28 +208,50 @@ class Object:
             adds a new addon to this Object
         """
         another_obj.alias = ref
+        another_obj.parent = self
         self.addons[ref] = another_obj
 
 
     def remove(self, ref: str, pop: bool = False, force_update: bool = False) -> None:
+        """
+            erases a addon from the object's surface
+            if pop is True, then the addon is removed from the addons list and won't be redrawn
+            if force_update is True, then the addon requests its parental Object to update itself on the screen. This chains up a recursive call, until an Object currently drawn on the actual display updates itself
+        """
+
         if ref not in self.addons.keys():
             return 
 
         addon = self.addons[ref]
 
-        # if the addon is not drawn it cannot be removed once more
+        # if the addon is not drawn it cannot be erased
         # if the object itself is not drawn, then the addon cannot be blitted
         if not addon.drawn or not self.drawn:
             return
 
-        drawn_area = addon.erase(f"removed from '{self.alias}'")
+        erased_area = addon.erase(f"removed from '{self.alias}'")
         if pop:
             self.addons.pop(ref)
         if force_update:
-            self.drawn = False
-            x, y = drawn_area.topleft
-            drawn_area = self.screen.blit(self.surface, self.rect.move(x, y), drawn_area)
-            update(drawn_area)
+            self.request_parent_update(erased_area)
+
+
+    def request_parent_update(self, area: Rect):
+        """
+            method to request its parent to repaint itself on the screen when an addon is erased
+
+            reminder: self.screen corresponds to self.parent.surface if self.parent is not None
+        """
+        # print(f"PARENT_UPDATE\n\tRequest to update {area} of {self.alias} on {self.screen}.\n\t{self.alias} is at {self.rect.topleft}.\n\tThe updated area should have {self.rect.topleft} + {area.topleft} topleft coords")
+        if self.parent is None:
+            area_relative_topleft = self.rect.move(*area.topleft)
+            area = self.screen.blit(self.screen_bak, area_relative_topleft, area)
+            # print("screen area to be updated:", area)
+            update(area)
+        else:
+            area_relative_topleft = self.rect.move(*area.topleft)
+            area = self.screen.blit(self.surface, area_relative_topleft, area)
+            self.parent.request_parent_update(area)
 
 
     def get_addons_positions(self, vertex: str, mode: str = "absolute") -> dict[str, tuple[int, int]]:

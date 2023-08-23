@@ -19,13 +19,18 @@ class AssembledUserInterfaceImage(Object):
         right_piece = ui_name.replace(".png", "").strip() + "_right" + ".png"
         right_piece = UserInterfaceImage(right_piece)
 
-        width = central_piece.rect.width+left_piece.rect.width+right_piece.rect.width
-        height = max(central_piece.rect.height, left_piece.rect.height, right_piece.rect.height)
+        width = central_piece.rect.w+left_piece.rect.w+right_piece.rect.w
+        height = max(central_piece.rect.h, left_piece.rect.h, right_piece.rect.h)
+
+        left_piece.move("topleft", (0, 0))
+        central_piece.move("topleft", (left_piece.rect.w, 0))
+        right_piece.move("topright", (width, 0))
+
         super().__init__((width,height))
 
-        self.add("left piece", "topleft", left_piece.to_surface(), (0, 0), None)
-        self.add("central piece", "topleft", central_piece.to_surface(), (left_piece.rect.width, 0), None)
-        self.add("right piece", "topright", right_piece.to_surface(), (width, 0), None)
+        self.add("left piece", left_piece)
+        self.add("central piece", central_piece)
+        self.add("right piece", right_piece)
 
 class ArrowImage(IntegralUserInterfaceImage):
     def __init__(self):

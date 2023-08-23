@@ -8,6 +8,7 @@ class CharacterImage(Image):
         super().__init__(folder_name, character_name)
         self.scale_by(2)
         self.name = character_name.replace(".png", "")
+        self.alias = self.name
 
 class HeroImage(CharacterImage):
     def __init__(self, hero_name: str):
