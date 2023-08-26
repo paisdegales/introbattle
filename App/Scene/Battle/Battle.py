@@ -21,26 +21,27 @@ class Battle(Scene):
         self.heros = HeroBand(heros)
         self.enemies = EnemyBand()
 
-        # self.options = OptionsBox((600, 225))
-        # self.selector = CharacterSelector(self.heros.get_positions(), (0, -10))
-
-        #obj = AssembledUserInterfaceImage("introcomp_balao 1.png")
-        #obj.move("topleft", (500, 500))
-        #obj.screen = self.screen
-        #self.obj = obj
+        self.options = OptionsBox((600, 225))
+        grid = Grid((50, 50), (100, 0), (2, 2))
+        # self.idle = 
+        self.actions = ActionOptions(grid, "Handjet")
+        self.actions.camouflage = True
+        box.add("idle", idle)
+        box.add("actions", actions)
+        # box.add("abilities", abilities)
 
 
     def draw_initial_frame(self) -> None:
         # self.background.draw(screen=self.screen)
 
         self.heros.move(("topleft", (230, 230))
-        self.heros.draw(screen=self.screen)
+        self.heros.draw(screen=self.screen, info="drawn onto main screen")
 
         self.enemies.move("topleft", (650, 270))
-        self.enemies.draw(screen=self.screen)
+        self.enemies.draw(screen=self.screen, info="drawn onto main screen")
 
-        # self.options.move("topleft", (50, 500))
-        # self.options.draw()
+        self.options.move("topleft", (70, 470))
+        self.options.draw(screen=self.screen, info="drawn onto main screen", addons="idle")
 
         #self.selector.draw(screen=self.screen)
         #self.keyboard.add_keydown(K_UP, MoveSelectorUp(self.selector))
@@ -63,8 +64,11 @@ class Battle(Scene):
         pass
 
 
-    def choose_action_handler(self) -> None:
-        pass
+    def choose_action_handler(self, event: Event) -> None:
+        if event.key == K_LEFT:
+            self.actions.change_option(previous=True)
+        elif event.key == K_RIGHT:
+            self.actions.change_option()
 
 
     def choose_ability_handler(self) -> None:
@@ -81,16 +85,13 @@ class Battle(Scene):
                         x, y = get_pos()
                         print(f"X: {x}, Y: {y}")
                 elif event.type == KEYDOWN:
-                    if event.key == K_UP:
-                        self.selector.up()
-                    elif event.key == K_DOWN:
-                        self.selector.down()
-                    elif event.key == K_LEFT:
-                        self.selector.left()
-                    elif event.key == K_RIGHT:
-                        self.selector.right()
-                    elif event.key == K_z:
-                        self.selector.select(self.player_options)
+                    if self.state == 0:
+                        self.choose_fighter_handler(event)
+                    elif self.state == 1:
+                        self.choose_action_handler(event)
+                    elif self.state == 2:
+                        self.choose_ability_handler(event)
+
             clear()
         except Exception as err:
             err.add_note(f"Battle Scene failed at check_events: {type(err)=}")

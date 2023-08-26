@@ -134,7 +134,7 @@ class Object:
         return self.screen.get_rect().contains(self.rect)
 
 
-    def draw(self, screen: Surface | None = None, info: str = "") -> None:
+    def draw(self, screen: Surface | None = None, info: str = "", addons: str | list[str] = "all") -> None:
         """
             draws the configured surface and its addons on another surface
 
@@ -171,8 +171,14 @@ class Object:
             self.surface.blit(beneath_surface, (0, 0))
 
         # first draw the Object's addons
-        for addon in self.addons.values():
-            addon.draw(screen=self.surface, info="drawn onto '{}'".format(self.alias))
+        if addons == "all":
+            for addon in self.addons.values():
+                addon.draw(screen=self.surface, info="drawn onto '{}'".format(self.alias))
+        elif isinstance(addons, list):
+            for addon in addons:
+                addon.draw(screen=self.surface, info="drawn onto '{}'".format(self.alias))
+        else:
+            self.addons[addons].draw(screen=self.surface, info="drawn onto '{}'".format(self.alias))
 
         # finally draw the Object to the screen
         self.drawn_area = self.screen.blit(self.surface, self.rect)

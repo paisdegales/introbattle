@@ -47,15 +47,15 @@ def main() -> None:
                 box = OptionsBox((600, 225))
                 box.move("topleft", k.pos)
                 grid = Grid((50, 50), (100, 0), (2, 2))
-                addon1 = ActionOptions(grid, "Handjet")
-                addon1.camouflage = True
-                arrow = addon1.addons["arrow"]
+                actions = ActionOptions(grid, "Handjet")
+                actions.camouflage = True
+                arrow = actions.addons["arrow"]
 
-                box.add("addon1", addon1)
+                box.add("actions", actions)
                 box.draw(screen, "drawn onto main screen")
                 objs.append(box)
                 objs.append(grid)
-                objs.append(addon1)
+                objs.append(actions)
             else:
                 pass
         elif peek(KEYDOWN):
@@ -67,12 +67,12 @@ def main() -> None:
                 elif k.key == K_t:
                     print(box)
                     if arrow.drawn:
-                        erased_area = addon1.remove("arrow")
-                        drawn_area = addon1.update(erased_area)
+                        erased_area = actions.remove("arrow")
+                        drawn_area = actions.update(erased_area)
                         box.update(drawn_area)
                     else:
-                        arrow.draw(info="drawn onto addon1's surface")
-                        drawn_area = addon1.update(arrow.drawn_area)
+                        arrow.draw(info="drawn onto actions's surface")
+                        drawn_area = actions.update(arrow.drawn_area)
                         box.update(drawn_area)
                 elif k.key == K_e:
                     for obj in objs:
@@ -84,18 +84,16 @@ def main() -> None:
                 elif k.key == K_c:
                     pass
                 elif k.key == K_r:
-                    pass
+                    area = box.remove("actions")
+                    box.update(area)
                 elif k.key == K_p:
                     print(get_pos())
                 elif k.key == K_RIGHT:
-                    arrow = box.addons["addon1"].addons["arrow"]
-                    erased_area = box.addons["addon1"].remove("arrow")
-                    drawn_area = addon1.update(erased_area)
-                    box.update(drawn_area)
-                    arrow.move_index(1)
-                    arrow.draw(info="drawn onto addon1's surface")
-                    drawn_area = addon1.update(arrow.drawn_area)
-                    box.update(drawn_area)
+                    actions.change_option()
+                elif k.key == K_LEFT:
+                    actions.change_option(previous=True)
+                elif k.key == K_RETURN:
+                    print(actions.select())
         else:
             pass
 

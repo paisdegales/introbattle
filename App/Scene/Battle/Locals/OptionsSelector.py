@@ -10,14 +10,12 @@ class OptionsSelector(DefaultSelector):
 
 
     def left(self) -> None:
-        if self.current in [1, 3]:
-            self.current -= 1
-            self.current %= self.max
-            self.move_index(self.current)
+        self.current -= 1
+        self.current %= self.max
+        self.move_index(self.current)
 
 
     def right(self) -> None:
-        if self.current in [0, 2]:
-            self.current += 1
-            self.current %= self.max
-            self.move_index(self.current)
+        self.current += 1
+        self.current %= self.max
+        self.move_index(self.current)
