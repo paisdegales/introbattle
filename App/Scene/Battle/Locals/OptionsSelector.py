@@ -1,12 +1,12 @@
-from App.Object.UserInterfaceImage import ArrowImage
-from App.Object.Selector import Selector
+# from App.Object.UserInterfaceImage import ArrowImage
+# from App.Object.Selector import Selector
+from App.Object.Selector import DefaultSelector
 from pygame.transform import rotate
 
-class OptionsSelector(Selector):
+class OptionsSelector(DefaultSelector):
     def __init__(self, anchors: dict[str, tuple[int, int]], displacement: tuple[int, int]):
-        surf = ArrowImage().to_surface()
-        surf = rotate(surf, -270)
-        super().__init__(surf, anchors, displacement)
+        super().__init__(anchors, displacement)
+        self.rotate(-270)
 
 
     def left(self) -> None:

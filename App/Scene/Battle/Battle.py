@@ -12,37 +12,40 @@ class Battle(Scene):
     def __init__(self, screen: Surface):
         super().__init__(screen)
 
+        # 0, 1, 2
+        self.state = 0
+
 
     def load_initial_frame(self, *args) -> None:
         heros = args
         self.heros = HeroBand(heros)
         self.enemies = EnemyBand()
-        self.options = OptionsBox(self.screen)
 
-        self.selector = CharacterSelector(self.heros.get_positions(), (0, -10))
-
+        # self.options = OptionsBox((600, 225))
+        # self.selector = CharacterSelector(self.heros.get_positions(), (0, -10))
 
         #obj = AssembledUserInterfaceImage("introcomp_balao 1.png")
         #obj.move("topleft", (500, 500))
         #obj.screen = self.screen
         #self.obj = obj
-        #health = HealthBar()
-        #health.move("topleft", (600, 600))
-        #health.screen = self.screen
-        #health.draw()
-
 
 
     def draw_initial_frame(self) -> None:
-        self.background.draw(screen=self.screen)
-        self.options.draw()
+        # self.background.draw(screen=self.screen)
+
+        self.heros.move(("topleft", (230, 230))
         self.heros.draw(screen=self.screen)
+
+        self.enemies.move("topleft", (650, 270))
         self.enemies.draw(screen=self.screen)
 
-        self.selector.draw(screen=self.screen)
-        self.keyboard.add_keydown(K_UP, MoveSelectorUp(self.selector))
-        self.keyboard.add_keydown(K_DOWN, MoveSelectorDown(self.selector))
-        self.keyboard.add_keydown(K_RETURN, SelectHero(self.keyboard, self.options))
+        # self.options.move("topleft", (50, 500))
+        # self.options.draw()
+
+        #self.selector.draw(screen=self.screen)
+        #self.keyboard.add_keydown(K_UP, MoveSelectorUp(self.selector))
+        #self.keyboard.add_keydown(K_DOWN, MoveSelectorDown(self.selector))
+        #self.keyboard.add_keydown(K_RETURN, SelectHero(self.keyboard, self.options))
 
         # removing the scene bg (it's the same as the Menu scene and it's already drawn)
         self.objects.pop()
@@ -51,10 +54,20 @@ class Battle(Scene):
         self.objects.append(self.enemies)
         self.objects.append(self.selector)
 
-        #self.obj.draw(transparent=True)
-
 
     def erase(self) -> None:
+        pass
+
+
+    def choose_fighter_handler(self) -> None:
+        pass
+
+
+    def choose_action_handler(self) -> None:
+        pass
+
+
+    def choose_ability_handler(self) -> None:
         pass
 
 

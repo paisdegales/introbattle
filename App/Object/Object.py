@@ -3,7 +3,7 @@ from pygame.rect import Rect
 from pygame.draw import line
 from pygame.color import Color
 from pygame.display import update
-from pygame.transform import scale_by, flip
+from pygame.transform import scale_by, flip, rotate
 
 
 class UndefinedScreen(Exception):
@@ -143,8 +143,8 @@ class Object:
 
         # if the Object is already drawn, then why the heck draw it again?
         # call erase first and then call this again!
-        if self.drawn:
-            return
+        # if self.drawn:
+        #     return
 
         try:
             if screen is not None:
@@ -178,7 +178,7 @@ class Object:
         self.drawn_area = self.screen.blit(self.surface, self.rect)
         update(self.drawn_area)
 
-        # print("DRAW", self.alias, f"topleft relative position: {self.rect.topleft}", f"size: {self.surface.get_size()}", info, sep="\n\t")
+        print("DRAW", self.alias, f"topleft relative position: {self.rect.topleft}", f"size: {self.surface.get_size()}", info, sep="\n\t")
 
 
     def erase(self, info: str = "") -> Rect:
@@ -198,7 +198,7 @@ class Object:
         self.beneath = None
         self.drawn = False
 
-        # print("ERASE", self.alias, info, f"area erased: {self.surface.get_size()}", sep="\n\t")
+        print("ERASE", self.alias, info, f"area erased: {self.surface.get_size()}", sep="\n\t")
 
         return drawn_area
 
@@ -212,7 +212,7 @@ class Object:
         self.addons[ref] = another_obj
 
 
-    def remove(self, ref: str, pop: bool = False, force_update: bool = False) -> None:
+    def remove(self, ref: str, pop: bool = False, force_update: bool = False) -> Rect:
         """
             erases a addon from the object's surface
             if pop is True, then the addon is removed from the addons list and won't be redrawn
@@ -230,10 +230,39 @@ class Object:
             return
 
         erased_area = addon.erase(f"removed from '{self.alias}'")
-        if pop:
-            self.addons.pop(ref)
         if force_update:
             self.request_parent_update(erased_area)
+        if pop:
+            self.addons.pop(ref)
+
+        return erased_area
+
+
+    def update(self, area: Rect) -> Rect:
+        """
+            repaints a portion of the Object's surface onto its screen
+
+            usecase example:
+                    # remove a addon of another addon and then update the root object on the screen
+                    # box is the root object
+                    # addon1 is the first level addon
+                    # arrow is the second level addon
+                    # 1. arrow is removed of addon1
+                    # 2. addon1's surface is updated only where arrow was removed
+                    # 3. box's surface is updated only where addon1 changed
+                    erased_area = box.addons["addon1"].remove("arrow")
+                    drawn_area = addon1.update(erased_area)
+                    box.update(drawn_area)
+        """
+
+        relative_topleft = self.rect.move(*area.topleft)
+        relative_topleft.update(relative_topleft.topleft, area.size)
+
+        print(f"UDPATE\n\trequest to update {area} of {self.alias} (surface: {self.surface})\n\t{self.alias} is drawn onto {self.screen}\n\t{self.alias} is at {self.rect.topleft} (topleft)\n\tarea to be updated: {relative_topleft}")
+
+        drawn_area = self.screen.blit(self.surface, relative_topleft, area)
+        update(drawn_area)
+        return drawn_area
 
 
     def request_parent_update(self, area: Rect):
@@ -242,11 +271,10 @@ class Object:
 
             reminder: self.screen corresponds to self.parent.surface if self.parent is not None
         """
-        # print(f"PARENT_UPDATE\n\tRequest to update {area} of {self.alias} on {self.screen}.\n\t{self.alias} is at {self.rect.topleft}.\n\tThe updated area should have {self.rect.topleft} + {area.topleft} topleft coords")
+        print(f"PARENT_UPDATE\n\tRequest to update {area} of {self.alias} on {self.screen}.\n\t{self.alias} is at {self.rect.topleft}.\n\tThe updated area should have {self.rect.topleft} + {area.topleft} topleft coords")
         if self.parent is None:
-            area_relative_topleft = self.rect.move(*area.topleft)
-            area = self.screen.blit(self.screen_bak, area_relative_topleft, area)
-            # print("screen area to be updated:", area)
+            area_relative_topleft = area.move(*self.rect.topleft)
+            area = self.screen.blit(self.screen_bak, area_relative_topleft, area_relative_topleft)
             update(area)
         else:
             area_relative_topleft = self.rect.move(*area.topleft)
@@ -273,6 +301,11 @@ class Object:
 
     def flip(self, x_flip: bool, y_flip: bool) -> None:
         self.surface = flip(self.surface, x_flip, y_flip)
+
+    
+    def rotate(self, ang: int) -> None:
+        self.surface = rotate(self.surface, ang)
+        self.rect.update(self.rect.topleft, self.surface.get_size())
 
 
     def make_contour(self, color: Color, thickness: int) -> None:

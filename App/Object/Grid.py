@@ -5,7 +5,7 @@ class Grid:
         self.number_lines, self.number_columns = dimensions
 
 
-    def coordinates(self, use_spacing: bool = False) -> list[list[int,int]]:
+    def coordinates(self) -> list[list[int,int]]:
         coords = list()
         for i in range(self.number_lines):
             for j in range(self.number_columns):
