@@ -15,6 +15,7 @@ class CharacterBand(Object):
         width = 2*max(widths)
 
         super().__init__((width, height))
+        self.alias = f"Character Band"
         self.camouflage = True
         for index, fighter in enumerate(fighters):
             fighter.camouflage = True
@@ -28,7 +29,7 @@ class HeroBand(CharacterBand):
         super().__init__(heros)
         self.addons[0].move("topleft", (0, 0))
         self.addons[1].move("topleft", self.addons[0].rect.bottomright)
-        self.addons[2].move("topright", self.addons[1].rect.bottomleft)
+        self.addons[2].move("topleft", (0, self.addons[1].rect.bottom))
 
 
 class EnemyBand(CharacterBand):

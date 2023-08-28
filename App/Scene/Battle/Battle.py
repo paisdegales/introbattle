@@ -1,12 +1,13 @@
 from App.Object.BackgroundImage import BackgroundImage
+from App.Object.Grid import Grid
 from App.Scene.Battle.Locals.CharacterBand import HeroBand, EnemyBand
 from App.Scene.Battle.Locals.CharacterSelector import CharacterSelector
-from App.Scene.Battle.Locals.Events import *
-from App.Scene.Battle.Locals.OptionsBox import OptionsBox
+from App.Scene.Battle.Locals.OptionsBox import OptionsBox, IDLE, HeroOptions 
 from App.Scene.Scene import Scene
 from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
 from pygame.surface import Surface
-from pygame.event import poll, peek, clear, set_blocked, set_allowed, get as get_events
+from pygame.event import poll, peek, clear, set_blocked, set_allowed, get as get_events, Event
+from pygame.mouse import get_pos
 
 class Battle(Scene):
     def __init__(self, screen: Surface):
@@ -21,39 +22,38 @@ class Battle(Scene):
         self.heros = HeroBand(heros)
         self.enemies = EnemyBand()
 
-        self.options = OptionsBox((600, 225))
-        grid = Grid((50, 50), (100, 0), (2, 2))
-        # self.idle = 
-        self.actions = ActionOptions(grid, "Handjet")
-        self.actions.camouflage = True
-        box.add("idle", idle)
-        box.add("actions", actions)
+        self.idle = IDLE("Dosis")
+
+        grid = Grid((50, 50), (300, 0), (2, 2))
+        self.actions = HeroOptions(grid, "SourceCodePro")
+
+        self.box = OptionsBox((600, 225))
+        self.box.add("idle", self.idle)
+        self.box.add("actions", self.actions)
         # box.add("abilities", abilities)
 
 
     def draw_initial_frame(self) -> None:
         # self.background.draw(screen=self.screen)
 
-        self.heros.move(("topleft", (230, 230))
+        self.heros.move("topleft", (230, 230))
         self.heros.draw(screen=self.screen, info="drawn onto main screen")
 
         self.enemies.move("topleft", (650, 270))
         self.enemies.draw(screen=self.screen, info="drawn onto main screen")
 
-        self.options.move("topleft", (70, 470))
-        self.options.draw(screen=self.screen, info="drawn onto main screen", addons="idle")
+        self.box.move("bottomleft", (50, 725))
+        self.idle.move("center", (self.box.rect.w/2, self.box.rect.h/2))
+        self.actions.move("topleft", (0, 0))
 
-        #self.selector.draw(screen=self.screen)
-        #self.keyboard.add_keydown(K_UP, MoveSelectorUp(self.selector))
-        #self.keyboard.add_keydown(K_DOWN, MoveSelectorDown(self.selector))
-        #self.keyboard.add_keydown(K_RETURN, SelectHero(self.keyboard, self.options))
+        addons = ["little_box_topleft", "little_box_topright", "little_box_bottomleft", "little_box_bottomright", "actions"]
+        self.box.draw(screen=self.screen, info="drawn onto main screen", addons=addons)
 
         # removing the scene bg (it's the same as the Menu scene and it's already drawn)
         self.objects.pop()
-        self.objects.append(self.options)
+        self.objects.append(self.box)
         self.objects.append(self.heros)
         self.objects.append(self.enemies)
-        self.objects.append(self.selector)
 
 
     def erase(self) -> None:
@@ -100,12 +100,3 @@ class Battle(Scene):
 
     def terminate(self) -> list[str]:
         pass
-
-
-    def __str__(self) -> str:
-        string = list()
-        string.append("Battle Scene Overview:")
-        for obj in self.objects:
-            string.append(obj.__str__())
-        string = "\n".join(string)
-        return string

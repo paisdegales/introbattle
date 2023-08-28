@@ -1,5 +1,5 @@
 from App.Scene.Battle.Locals.FightingCharacter import FightingCharacter, create_fighter_image
-from App.Scene.Battle.Locals.OptionsBox import OptionsBox, ActionOptions
+from App.Scene.Battle.Locals.OptionsBox import OptionsBox, HeroOptions
 from App.Scene.Battle.Locals.CharacterBand import HeroBand, EnemyBand
 from App.Scene.Battle.Locals.CharacterSelector import CharacterSelector
 from App.Object.BackgroundImage import BackgroundImage
@@ -47,7 +47,7 @@ def main() -> None:
                 box = OptionsBox((600, 225))
                 box.move("topleft", k.pos)
                 grid = Grid((50, 50), (100, 0), (2, 2))
-                actions = ActionOptions(grid, "Handjet")
+                actions = HeroOptions(grid, "Handjet")
                 actions.camouflage = True
                 arrow = actions.addons["arrow"]
 

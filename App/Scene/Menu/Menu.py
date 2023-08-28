@@ -39,7 +39,6 @@ class Menu(Scene):
             self.selector = MenuSelector(self.guild_options, displacement=SELECTOR_DISPLACEMENT)
             self.selector.draw(screen=self.screen)
 
-            self.objects.append(self.background)
             self.objects.append(self.banner)
             self.objects.append(self.guild_options)
             self.objects.append(self.selector)

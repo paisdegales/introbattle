@@ -6,14 +6,6 @@ from App.Scene.Battle.Locals.FightingCharacter import FightingCharacter
 from App.Scene.Battle.Locals.OptionsSelector import OptionsSelector
 
 """
-class OptionsBoxStateIDLE(Object):
-    def __init__(self):
-        super().__init__("Dosis")
-        text = self.font.render("Bold", "Choose a character", 40, BLACK, None)
-        text = Object(surface=text)
-        text.move("center", self.rect.center)
-        self.add("text", text)
-
 class OptionsBoxStateSelectingOptions(Object):
     def __init__(self):
         super().__init__("OpenSans")
@@ -35,18 +27,27 @@ class OptionsBoxStateSelectingOptions(Object):
     def erase(self) -> None:
         pass
 """
+class IDLE(Object):
+    def __init__(self, family_name: str):
+        self.font = FontFamily(family_name)
+        text = self.font.render("Bold", "Choose a character", 40, BLACK, None)
+        super().__init__(surface=text)
+        self.alias = "IDLE"
 
-class ActionOptions(Object):
+
+class HeroOptions(Object):
     def __init__(self, grid: Grid, family_name: str):
         coords = grid.coordinates()
         self.font = FontFamily(family_name)
 
-        text1 = self.font.render("Regular", "Attack", 30, BLACK, None)
+        fontsize = 30
+
+        text1 = self.font.render("Regular", "Attack", fontsize, BLACK, None)
         text1 = Object(surface=text1)
         text1.alias = "Action box attack text"
         text1.move("topleft", coords[0])
 
-        text2 = self.font.render("Regular", "Defend", 30, BLACK, None)
+        text2 = self.font.render("Regular", "Defend", fontsize, BLACK, None)
         text2 = Object(surface=text2)
         text2.alias = "Action box defend text"
         text2.move("topleft", coords[1])
@@ -61,6 +62,7 @@ class ActionOptions(Object):
         self.arrow = arrow
         self.text1 = text1
         self.text2 = text2
+        self.camouflage = True
 
 
     def change_option(self, previous: bool = True) -> None:
