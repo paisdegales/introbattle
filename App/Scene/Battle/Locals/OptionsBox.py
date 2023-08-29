@@ -32,6 +32,7 @@ class IDLE(Object):
         self.font = FontFamily(family_name)
         text = self.font.render("Bold", "Choose a character", 40, BLACK, None)
         super().__init__(surface=text)
+        self.camouflage = True
         self.alias = "IDLE"
 
 
