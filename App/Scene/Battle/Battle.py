@@ -2,7 +2,7 @@ from App.Object.BackgroundImage import BackgroundImage
 from App.Object.Grid import Grid
 from App.Scene.Battle.Locals.CharacterBand import HeroBand, EnemyBand
 from App.Scene.Battle.Locals.CharacterSelector import CharacterSelector
-from App.Scene.Battle.Locals.OptionsBox import OptionsBox, IDLE, HeroOptions 
+from App.Scene.Battle.Locals.OptionsBox import OptionsBox, IDLE, HeroOptions, AbilityOptions
 from App.Scene.Scene import Scene
 from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
 from pygame.surface import Surface
@@ -25,14 +25,16 @@ class Battle(Scene):
         self.heros = HeroBand(heros)
         self.enemies = EnemyBand()
 
+        size = 600, 225
+        self.box = OptionsBox(size)
         self.idle = IDLE("Dosis")
-        grid = Grid((50, 50), (300, 0), (2, 2))
+        grid = Grid((50, 50), (300, 70), (2, 2))
         self.actions = HeroOptions(grid, "SourceCodePro")
+        self.abilities = AbilityOptions(size, grid, "SourceCodePro")
 
-        self.box = OptionsBox((600, 225))
         self.box.add("idle", self.idle)
         self.box.add("actions", self.actions)
-        # box.add("abilities", abilities)
+        self.box.add("abilities", self.abilities)
 
 
     def draw_initial_frame(self) -> None:
@@ -50,6 +52,7 @@ class Battle(Scene):
         self.box.move("bottomleft", (50, 725))
         self.idle.move("center", (self.box.rect.w/2, self.box.rect.h/2))
         self.actions.move("topleft", (0, 0))
+        self.abilities.move("topleft", (0, 0))
 
         addons = ["little_box_topleft", "little_box_topright", "little_box_bottomleft", "little_box_bottomright", "idle"]
         self.box.draw(screen=self.screen, info="drawn onto main screen", addons=addons)
@@ -92,8 +95,22 @@ class Battle(Scene):
         return None
 
 
-    def choose_ability_handler(self, event: Event) -> None:
-        pass
+    def choose_ability_handler(self, event: Event) -> str | None:
+        if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
+            if event.key == K_LEFT:
+                self.abilities.change_option(previous=True)
+            elif event.key == K_RIGHT:
+                self.abilities.change_option(previous=False)
+            elif event.key == K_UP:
+                self.abilities.change_option(previous=True)
+                self.abilities.change_option(previous=True)
+            elif event.key == K_DOWN:
+                self.abilities.change_option(previous=False)
+                self.abilities.change_option(previous=False)
+        elif event.key == K_z:
+            ability = self.abilities.select()
+            return ability
+        return None
 
 
     def check_events(self, events: list[Event]) -> None:
@@ -106,8 +123,6 @@ class Battle(Scene):
                         x, y = get_pos()
                         print(f"X: {x}, Y: {y}")
                 elif event.type == KEYDOWN:
-                    # STATES COULD BE BETTER MANAGED.
-                    # MAYBE CREATE SOME ADDTIONAL METHODS TO TAKE CARE OF CHANGING STATES
                     if self.state == 0:
                         self.current_hero = self.choose_fighter_handler(event)
                         if self.current_hero is not None:
@@ -120,11 +135,23 @@ class Battle(Scene):
                         if self.current_action is not None:
                             erased_area = self.actions.erase("erased from mainscreen")
                             self.box.update(erased_area)
-                            # self.box.draw(info="drawn onto mainscreen", addons="abilities")
-                            # self.state = 2
+                            fighter = self.heros.addons[self.current_hero]
+                            self.abilities.load(fighter)
+                            self.box.draw(info="drawn onto mainscreen", addons="abilities")
+                            self.state = 2
                     elif self.state == 2:
-                        self.choose_ability_handler(event)
-                        self.state = 0
+                        self.current_ability = self.choose_ability_handler(event)
+                        if self.current_ability is not None:
+                            erased_area = self.abilities.erase("erased from mainscreen")
+                            self.box.update(erased_area)
+                            drawn_area = self.box.draw(info="drawn onto mainscreen", addons="idle")
+                            number_keys = len(self.abilities.addons)
+                            for addon in range(number_keys):
+                                self.abilities.addons.popitem()
+                            self.current_hero = None
+                            self.current_action = None
+                            self.current_ability = None
+                            self.state = 0
 
             clear()
         except Exception as err:

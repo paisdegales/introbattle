@@ -5,34 +5,12 @@ from App.Font.Family import FontFamily
 from App.Scene.Battle.Locals.FightingCharacter import FightingCharacter
 from App.Scene.Battle.Locals.OptionsSelector import OptionsSelector
 
-"""
-class OptionsBoxStateSelectingOptions(Object):
-    def __init__(self):
-        super().__init__("OpenSans")
 
-
-    def load(self, fighter: FightingCharacter) -> None:
-        fontsize = 30
-        height = self.rect.h/4
-        x1 = self.rect.w/4
-        x2 = 3*x1
-
-        for index, attack in enumerate(fighter.attacks):
-            surface = self.font.render("Bold", attack.name, fontsize, BLACK, None)
-            quoc, rest = divmod(index, 2)
-            displacement = x2 if rest else x1, height * quoc
-            self.add(attack.name, "center", surface, displacement, None)
-
-
-    def erase(self) -> None:
-        pass
-"""
 class IDLE(Object):
     def __init__(self, family_name: str):
         self.font = FontFamily(family_name)
         text = self.font.render("Bold", "Choose a character", 40, BLACK, None)
         super().__init__(surface=text)
-        self.camouflage = True
         self.alias = "IDLE"
 
 
@@ -82,6 +60,46 @@ class HeroOptions(Object):
         return self.arrow.get_current_ref()
 
 
+class AbilityOptions(Object):
+    def __init__(self, size: tuple[int, int], grid: Grid, family_name: str):
+        """
+            this class can only be loaded once a hero and action were both chosen. For this reason,
+            it's impossible to tell the size that it should initially have.
+        """
+        super().__init__(size)
+        self.camouflage = True
+        self.font = FontFamily(family_name)
+        self.coords = grid.coordinates()
+
+
+    def load(self, fighter: FightingCharacter) -> None:
+        fontsize = 20
+        for attack, pos in zip(fighter.attacks, self.coords):
+            surface = self.font.render("Regular", attack.name, fontsize, BLACK, None)
+            obj = Object(surface=surface)
+            obj.move("topleft", pos)
+            self.add(f"{attack.name} text", obj)
+        self.arrow = OptionsSelector(self.get_addons_positions("midleft"), (-10, 5))
+        self.add("arrow", self.arrow)
+
+
+    def change_option(self, previous: bool = True) -> None:
+        erased_area = self.remove("arrow")
+        drawn_area = self.update(erased_area)
+        self.parent.update(drawn_area)
+        if previous:
+            self.arrow.left()
+        else:
+            self.arrow.right()
+        self.arrow.draw(info="drawn onto AbilityOptions' surface")
+        drawn_area = self.update(self.arrow.drawn_area)
+        self.parent.update(drawn_area)
+
+
+    def select(self) -> str:
+        return self.arrow.get_current_ref()
+
+
 class OptionsBox(Object):
     def __init__(self, size: tuple[int, int]):
         super().__init__(size)
@@ -118,5 +136,3 @@ class OptionsBox(Object):
         self.add("little_box_topright", little_box_topright)
         self.add("little_box_bottomleft", little_box_bottomleft)
         self.add("little_box_bottomright", little_box_bottomright)
-
-        # grid

@@ -1,4 +1,4 @@
-from App.Scene.Battle.Locals.FightingCharacter import FightingCharacter
+from App.Scene.Battle.Locals.FightingCharacter import create_fighter_image
 from App.Object.Object import Object
 from pygame.surface import Surface
 
@@ -7,7 +7,7 @@ class CharacterBand(Object):
     def __init__(self, characters: list[str]):
         fighters = list()
         for character in characters:
-            character = FightingCharacter(character)
+            character = create_fighter_image(character)
             fighters.append(character)
         heights = map(lambda x: x.rect.h, fighters)
         widths = list(map(lambda x: x.rect.w, fighters))

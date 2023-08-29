@@ -44,7 +44,10 @@ class FightingHunter(FightingCharacter):
 class FightingPaladin(FightingCharacter):
     def __init__(self):
         super().__init__("Paladin", attack=10, defense=10, hp=10, mp=10, stamina=10)
+        self.attacks.append(AttackAbility(self.attributes, "Sword of Justice", description=""))
         self.attacks.append(AttackAbility(self.attributes, "Impale", description=""))
+        self.attacks.append(AttackAbility(self.attributes, "Judgement", description=""))
+        self.attacks.append(AttackAbility(self.attributes, "Strike", description=""))
         self.defenses.append(DefenseAbility(self.attributes, "Holy Spirit", description="", strength=10))
 
 
@@ -95,5 +98,9 @@ def create_fighter_image(name: str) -> FightingCharacter | None:
             return FightingPriest()
         case "Rogue":
             return FightingRogue()
+        case "Skull":
+            return FightingSkull()
+        case "Mage":
+            return FightingMage()
         case _:
             return None

@@ -5,6 +5,7 @@ from pygame.color import Color
 from pygame.display import update
 from pygame.transform import scale_by, flip, rotate
 
+DEBUG = 0
 
 class UndefinedScreen(Exception):
     def __init__(self, *args):
@@ -184,7 +185,7 @@ class Object:
         self.drawn_area = self.screen.blit(self.surface, self.rect)
         update(self.drawn_area)
 
-        # print("DRAW", self.alias, f"topleft relative position: {self.rect.topleft}", f"size: {self.surface.get_size()}", info, sep="\n\t")
+        if DEBUG: print("DRAW", self.alias, f"topleft relative position: {self.rect.topleft}", f"size: {self.surface.get_size()}", info, sep="\n\t")
 
 
     def erase(self, info: str = "") -> Rect:
@@ -204,7 +205,7 @@ class Object:
         self.beneath = None
         self.drawn = False
 
-        # print("ERASE", self.alias, info, f"area erased: {self.surface.get_size()}", sep="\n\t")
+        if DEBUG: print("ERASE", self.alias, info, f"area erased: {self.surface.get_size()}", sep="\n\t")
 
         return drawn_area
 
@@ -264,7 +265,7 @@ class Object:
         relative_topleft = self.rect.move(*area.topleft)
         relative_topleft.update(relative_topleft.topleft, area.size)
 
-        # print(f"UDPATE\n\trequest to update {area} of {self.alias} (surface: {self.surface})\n\t{self.alias} is drawn onto {self.screen}\n\t{self.alias} is at {self.rect.topleft} (topleft)\n\tarea to be updated: {relative_topleft}")
+        if DEBUG: print(f"UDPATE\n\trequest to update {area} of {self.alias} (surface: {self.surface})\n\t{self.alias} is drawn onto {self.screen}\n\t{self.alias} is at {self.rect.topleft} (topleft)\n\tarea to be updated: {relative_topleft}")
 
         drawn_area = self.screen.blit(self.surface, relative_topleft, area)
         update(drawn_area)
@@ -277,7 +278,7 @@ class Object:
 
             reminder: self.screen corresponds to self.parent.surface if self.parent is not None
         """
-        # print(f"PARENT_UPDATE\n\tRequest to update {area} of {self.alias} on {self.screen}.\n\t{self.alias} is at {self.rect.topleft}.\n\tThe updated area should have {self.rect.topleft} + {area.topleft} topleft coords")
+        if DEBUG: print(f"PARENT_UPDATE\n\tRequest to update {area} of {self.alias} on {self.screen}.\n\t{self.alias} is at {self.rect.topleft}.\n\tThe updated area should have {self.rect.topleft} + {area.topleft} topleft coords")
         if self.parent is None:
             area_relative_topleft = area.move(*self.rect.topleft)
             area = self.screen.blit(self.screen_bak, area_relative_topleft, area_relative_topleft)
