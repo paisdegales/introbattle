@@ -5,7 +5,7 @@ class Grid:
         self.number_lines, self.number_columns = dimensions
 
 
-    def coordinates(self) -> list[list[int,int]]:
+    def coordinates(self) -> list[list[int]]:
         coords = list()
         for i in range(self.number_lines):
             for j in range(self.number_columns):
@@ -16,7 +16,7 @@ class Grid:
         return coords
 
 
-    def shift(self, coords: list[list[int,int]], shift_amount: tuple[int,int], line_index: int | None = None, column_index: int | None = None) -> list[list[int,int]]:
+    def shift(self, coords: list[list[int]], shift_amount: tuple[int,int], line_index: int | None = None, column_index: int | None = None) -> list[list[int]]:
         """
             moves all elements which belong to the same line/column by a certain displacement value given as coordinates
         """

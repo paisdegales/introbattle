@@ -1,6 +1,6 @@
 from App.Object.BackgroundImage import BackgroundImage
-from App.Screen.Screen import Screen
-from pygame.event import get as get_events, Event
+from pygame.surface import Surface
+from pygame.event import Event
 
 
 class EndOfScene(Exception):
@@ -14,7 +14,7 @@ class Scene:
         The idea is to gather objects (texts, images, sounds and so on) that make sense when put together in a certain context
     """
 
-    def __init__(self, screen: Screen) -> None:
+    def __init__(self, screen: Surface) -> None:
         self.screen = screen
         self.objects = list()
         self.background = BackgroundImage(self.screen.get_size())
@@ -29,7 +29,7 @@ class Scene:
     def check_events(self, events: list[Event]) -> int:
         raise NotImplementedError()
 
-    def terminate(self) -> None:
+    def terminate(self):
         raise NotImplementedError()
 
     def erase(self) -> None:

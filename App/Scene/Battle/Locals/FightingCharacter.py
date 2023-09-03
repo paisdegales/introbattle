@@ -7,7 +7,10 @@ from App.Scene.Battle.Locals.CharacterAbility import AttackAbility, DefenseAbili
 
 class FightingCharacter(Object):
     def __init__(self, name: str, **kwargs):
-        self.character = create_character_image(name)
+        ch = create_character_image(name)
+        if ch is None:
+            raise Exception("FightingCharacter init error", f"No {name} is defined")
+        self.character = ch
         self.attributes = FighterAttributes(**kwargs)
         self.attacks: list[AttackAbility] = list()
         self.defenses: list[DefenseAbility] = list()
@@ -20,10 +23,10 @@ class FightingCharacter(Object):
         width = max(widths)
         height = self.character.rect.h + self.hp_img.rect.h + self.mp_img.rect.h + self.stamina_img.rect.h
 
-        self.hp_img.move("midtop", (width/2, 0))
-        self.mp_img.move("midtop", (width/2, self.hp_img.rect.h))
-        self.stamina_img.move("midtop", (width/2, self.hp_img.rect.h + self.mp_img.rect.h))
-        self.character.move("midtop", (width/2, self.hp_img.rect.h + self.mp_img.rect.h + self.stamina_img.rect.h))
+        self.hp_img.move("midtop", (int(width/2), 0))
+        self.mp_img.move("midtop", (int(width/2), self.hp_img.rect.h))
+        self.stamina_img.move("midtop", (int(width/2), self.hp_img.rect.h + self.mp_img.rect.h))
+        self.character.move("midtop", (int(width/2), self.hp_img.rect.h + self.mp_img.rect.h + self.stamina_img.rect.h))
 
         super().__init__((width, height))
         self.alias = f"Fighting {self.character.name}"

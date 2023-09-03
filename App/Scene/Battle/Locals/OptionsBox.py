@@ -72,13 +72,13 @@ class AbilityOptions(Object):
         self.coords = grid.coordinates()
 
 
-    def load(self, fighter: FightingCharacter) -> None:
+    def load(self, fighter: FightingCharacter, action: str) -> None:
         fontsize = 20
-        for attack, pos in zip(fighter.attacks, self.coords):
-            surface = self.font.render("Regular", attack.name, fontsize, BLACK, None)
+        for ability, pos in zip(fighter.attacks if action == "Attack" else fighter.defenses, self.coords):
+            surface = self.font.render("Regular", ability.name, fontsize, BLACK, None)
             obj = Object(surface=surface)
             obj.move("topleft", pos)
-            self.add(f"{attack.name} text", obj)
+            self.add(f"{ability.name} text", obj)
         self.arrow = OptionsSelector(self.get_addons_positions("midleft"), (-10, 5))
         self.add("arrow", self.arrow)
 
@@ -98,6 +98,14 @@ class AbilityOptions(Object):
 
     def select(self) -> str:
         return self.arrow.get_current_ref()
+
+
+class TargetOptions(Object):
+    def __init__(self, family_name: str):
+        self.font = FontFamily(family_name)
+        text = self.font.render("Bold", "Choose a target", 40, BLACK, None)
+        super().__init__(surface=text)
+        self.alias = "TargetBox"
 
 
 class OptionsBox(Object):

@@ -66,7 +66,7 @@ class Object:
         else:
             self.surface = Surface(surface.get_size(), surface.get_flags(), surface.get_bitsize())
             self.surface.blit(surface, (0, 0))
-        self.rect = Rect((0, 0), self.surface.get_size())
+        self.rect: Rect = Rect((0, 0), self.surface.get_size())
         self.drawn = False
         self.screen_bak = None
         self.screen = None
@@ -193,7 +193,7 @@ class Object:
             Erases the Object according to what's saved in the backup screen
         """
         if not self.drawn:
-            return
+            return Rect((0,0))
 
         for addon in self.addons.values():
             addon.erase(info="erased from '{}'".format(self.alias))
@@ -250,16 +250,16 @@ class Object:
             repaints a portion of the Object's surface onto its screen
 
             usecase example:
-                    # remove a addon of another addon and then update the root object on the screen
-                    # box is the root object
-                    # addon1 is the first level addon
-                    # arrow is the second level addon
-                    # 1. arrow is removed of addon1
-                    # 2. addon1's surface is updated only where arrow was removed
-                    # 3. box's surface is updated only where addon1 changed
-                    erased_area = box.addons["addon1"].remove("arrow")
-                    drawn_area = addon1.update(erased_area)
-                    box.update(drawn_area)
+                # remove an addon of another addon and then update the root object on the screen
+                # box is the root object
+                # addon1 is the first level addon
+                # arrow is the second level addon
+                # 1. arrow is removed of addon1
+                # 2. addon1's surface is updated only where arrow was removed
+                # 3. box's surface is updated only where addon1 changed
+                erased_area = box.addons["addon1"].remove("arrow")
+                drawn_area = addon1.update(erased_area)
+                box.update(drawn_area)
         """
 
         relative_topleft = self.rect.move(*area.topleft)

@@ -3,14 +3,14 @@ from App.Scene.Menu.Local.GuildOptions import GuildOptions
 from App.Scene.Menu.Local.Positioning import *
 from App.Scene.Menu.Local.Selector import MenuSelector
 from App.Scene.Scene import Scene
-from App.Screen.Screen import Screen
 from logging import warning
 from pygame.event import Event, clear
 from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
 from pygame.mouse import get_pos
+from pygame.surface import Surface
 
 class Menu(Scene):
-    def __init__(self, screen: Screen) -> None:
+    def __init__(self, screen: Surface) -> None:
         super().__init__(screen)
         self.player_options: list[str] = list()
 
