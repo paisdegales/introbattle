@@ -98,3 +98,26 @@ App/
     * metodo 'draw' agora retorna o que é necessario para apagar o que acabou de ser desenhado (superficie apagadora e posicao onde foi desenhado na superficie)
 * classe 'Screen' agora representa a superficie da tela do jogo. Todas subclasses de 'BaseObject' que apareceram na tela do jogo deve ser adicionados pelo metodo 'draw'.
 * a classe 'Screen' se encarrega de apagar corretamente tudo que foi desenhado nela, no entanto é necessário se atentar a ordem com que os objetos foram desenhados, pois a 'Screen' nao cuida disso e isso pode causar efeitos indesejados caso uma superficie que esteja embaixo de outra seja apagada primeiro
+
+# Fazendo agora
+1. SISTEMA DE COMBATE
+* criar as classes de fighter para todos os herois e inimigos
+* criar a classe de ability, attack, defense para todos os herois
+    * essa classe tera que receber um objeto da classe Fighter (um Fighter tem uma Ability)
+* criar ataques e defesas para todos os herois e inimigos
+* fazer sistema de combate
+    * provavelmente uma classe (talvez chamada Combat) que consiga fazer um Fighter atacar outro Fighter, ambos usando uma habilidade
+    * ao conseguir fazer um fighter atacar outro, fazer um metodo que permita um conjunto de fighters (baseado no atributo speed) atacar um outro conjunto de enemies
+
+2. SELETOR
+* implementar o que for necessario no UserInterfaceSelector para conseguir alternar entre as posicoes providas por um Grid 
+* testar
+
+3. CENAS
+* as cenas precisam ser reconstruidas do zero
+* padronizar o nome das pastas local para Local
+* sistema de eventos, objetos locais
+
+4. GAME
+* a classe game precisa ser portada para utilizar a nova classe Screen
+* Deve repassar os eventos coletados do teclado as funcoes de tratamento de eventos

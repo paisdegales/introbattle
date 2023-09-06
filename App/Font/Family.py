@@ -4,9 +4,8 @@ from pygame.surface import Surface
 from App.Font.Style import FontStyle
 
 class FontFamily():
-    """
-        Class responsible for all font families used in this project (OpenSans, Arial ...)
-    """
+    """ Class responsible for all font families used in this project (OpenSans, Arial ...) """
+
     def __init__(self, family_name: str) -> None:
         if get_init() == False:
             init()
