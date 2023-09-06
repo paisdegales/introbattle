@@ -2,7 +2,6 @@ from pygame.font import init, get_init
 from pygame.color import Color
 from pygame.surface import Surface
 from App.Font.Style import FontStyle
-from logging import warning
 
 class FontFamily():
     """
@@ -15,16 +14,7 @@ class FontFamily():
         self.family_name = family_name
         self.styles: dict[str, FontStyle] = dict()
 
-    @property
-    def style(self, style_name: str) -> FontStyle | None:
-        if style_name not in self.styles.keys():
-            return None
-
-        return self.styles[style_name]
-
-    @style.setter
-    def style(self, pack: tuple[str, int]) -> None:
-        style_name, style_size = pack
+    def load_style(self, style_name: str, style_size: int) -> None:
         if style_name not in self.styles.keys():
             self.styles[style_name] = FontStyle(self.family_name, style_name, size=style_size)
         else:
@@ -32,9 +22,9 @@ class FontFamily():
 
     def render(self, style: str, text: str, font_size: int, text_color: Color, background_color: Color | None = None, area: tuple[int,int] | None = None, vertex: str = "center") -> Surface:
         try:
-            self.style = (style, font_size)
+            self.load_style(style, font_size)
         except Exception as e:
-            warning(f"Failed when attempting to write '{text}'! Failed to fetch/use '{style}'! Make sure the stylename is right and its file exists")
+            print(f"Failed when attempting to write '{text}'! Failed to fetch/use '{style}'! Make sure the stylename is right and its file exists")
             raise e
 
         return self.styles[style].render(text, text_color, background_color, area, vertex)
@@ -42,9 +32,9 @@ class FontFamily():
 
     def get_render_size(self, style: str, text: str, font_size: int) -> tuple[int, int]:
         try:
-            self.style = style, font_size
+            self.load_style(style, font_size)
         except Exception as e:
-            warning(e.args)
+            print(e.args, type(e))
             raise e
 
         return self.styles[style].get_render_size(text)

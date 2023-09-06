@@ -1,12 +1,10 @@
-from App.Object.Object import Object
+from App.Object.Object import BaseObject
 from App.Object.UserInterfaceImage import ArrowImage
 from pygame.surface import Surface
-from logging import warning
 
-class Selector(Object):
-    def __init__(self, surface: Surface, anchors: dict[str, tuple[int, int]], displacement: tuple[int, int]):
-        super().__init__(surface=surface)
-        self.alias = "Select indicator"
+class Selector(BaseObject):
+    def __init__(self, name: str, surface: Surface, anchors: dict[str, tuple[int, int]], displacement: tuple[int, int]):
+        super().__init__(name, surface=surface)
         self.anchors: dict[str, tuple[int, int]] = anchors
         self.mnemonic: dict[int, str] = dict()
         for index, k in enumerate(self.anchors.keys()):
@@ -29,7 +27,7 @@ class Selector(Object):
 
     def move(self, anchor: str) -> None:
         if anchor not in self.anchors.keys():
-            warning("Error when moving selector!")
+            print("Error when moving selector!")
             return
         self.rect.midbottom = self.anchors[anchor]
 
@@ -51,4 +49,4 @@ class Selector(Object):
 
 class DefaultSelector(Selector):
     def __init__(self, anchors: dict[str, tuple[int, int]], displacement: tuple[int, int]):
-        super().__init__(ArrowImage().surface, anchors, displacement)
+        super().__init__("default selector", ArrowImage().image, anchors, displacement)

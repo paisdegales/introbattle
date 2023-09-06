@@ -1,65 +1,106 @@
-from App.Object.Image import Image
-from App.Object.Object import Object
+from pygame.rect import Rect
+from pygame.draw import rect
+from App.Setup.Globals import GRAY, uipath, WHITE
+from App.Object.Object import ImportedObject, SizedObject
 
-class UserInterfaceImage(Image):
-    def __init__(self, ui_name: str):
-        super().__init__("UI", ui_name)
+
+class UserInterfaceImage(ImportedObject):
+    def __init__(self, ui_name: str, ui_filepath: str):
+        ui_name = ui_name.replace(".png", "").replace(".jpg", "").replace(".gif", "")
+        super().__init__(ui_name, ui_filepath)
+
 
 class IntegralUserInterfaceImage(UserInterfaceImage):
     def __init__(self, ui_name: str):
-        super().__init__(ui_name)
+        super().__init__(ui_name, uipath(ui_name))
 
-class AssembledUserInterfaceImage(Object):
+
+class AssembledUserInterfaceImage(SizedObject):
     def __init__(self, ui_name: str):
-        central_piece = UserInterfaceImage(ui_name)
+        self.central_piece = IntegralUserInterfaceImage(ui_name)
 
-        left_piece = ui_name.replace(".png", "").strip() + "_left" + ".png"
-        left_piece = UserInterfaceImage(left_piece)
+        left_piece = ui_name.replace(".png", "").replace(".png", "").replace(".gif", "").strip() + "_left" + ".png"
+        self.left_piece =  IntegralUserInterfaceImage(left_piece)
 
-        right_piece = ui_name.replace(".png", "").strip() + "_right" + ".png"
-        right_piece = UserInterfaceImage(right_piece)
+        right_piece = ui_name.replace(".png", "").replace(".png", "").replace(".gif", "").strip() + "_right" + ".png"
+        self.right_piece =  IntegralUserInterfaceImage(right_piece)
 
-        width = central_piece.rect.w+left_piece.rect.w+right_piece.rect.w
-        height = max(central_piece.rect.h, left_piece.rect.h, right_piece.rect.h)
+        width = self.central_piece.rect.w + self.left_piece.rect.w + self.right_piece.rect.w
+        height = max(self.central_piece.rect.h, self.left_piece.rect.h, self.right_piece.rect.h)
 
-        left_piece.move("topleft", (0, 0))
-        central_piece.move("topleft", (left_piece.rect.w, 0))
-        right_piece.move("topright", (width, 0))
+        self.left_piece.move("topleft", (0, 0))
+        self.central_piece.move("topleft", (self.left_piece.rect.w, 0))
+        self.right_piece.move("topright", (width, 0))
 
-        super().__init__((width,height))
+        ui_name = ui_name.replace(".png", "").replace(".png", "").replace(".gif", "") + "_complete"
+        super().__init__(ui_name, (width,height))
 
-        self.add("left piece", left_piece)
-        self.add("central piece", central_piece)
-        self.add("right piece", right_piece)
+        self.left_piece.draw(self.image)
+        self.central_piece.draw(self.image)
+        self.right_piece.draw(self.image)
+
 
 class ArrowImage(IntegralUserInterfaceImage):
     def __init__(self):
         super().__init__("introcomp_seta.png")
 
+
 class MenuImage(IntegralUserInterfaceImage):
     def __init__(self):
         super().__init__("introcomp_menu.png")
+
 
 class Ballon1(AssembledUserInterfaceImage):
     def __init__(self):
         super().__init__("introcomp_balao 1.png")
 
+
 class Ballon2(AssembledUserInterfaceImage):
     def __init__(self):
         super().__init__("introcomp_balao 2.png")
+
 
 class Button(AssembledUserInterfaceImage):
     def __init__(self):
         super().__init__("introcomp_button.png")
 
-class HealthBar(AssembledUserInterfaceImage):
+
+class FillingBar(AssembledUserInterfaceImage):
+    def __init__(self, ui_name: str):
+        super().__init__(ui_name)
+        self.scale_by(1.3)
+        self.full = self.image.copy()
+        self.full.blit(self.image, (0, 0))
+        self.percent = 1
+
+
+    def update(self, percent: float) -> Rect:
+        if (percent > 1) or (percent < 0):
+            raise Exception("'update' method of FillingBar got something other than a percentage")
+        self.percent = percent
+        w = int(self.rect.w * (1 - percent))
+        size = w, self.rect.h
+        r = Rect((self.rect.w - w, 0), size)
+        changed_area = rect(self.image, GRAY, r, border_top_right_radius=10, border_bottom_right_radius=10)
+        return changed_area
+
+
+    def restore(self) -> None:
+        self.percent = 1
+        self.image = self.full.copy()
+        self.image.blit(self.full, (0, 0))
+
+
+class HealthBar(FillingBar):
     def __init__(self):
         super().__init__("introcomp_hp .png")
 
-class ManaBar(AssembledUserInterfaceImage):
+
+class ManaBar(FillingBar):
     def __init__(self):
         super().__init__("introcomp_mp.png")
 
-class StaminaBar(AssembledUserInterfaceImage):
+
+class StaminaBar(FillingBar):
     def __init__(self):
         super().__init__("introcomp_stamina.png")

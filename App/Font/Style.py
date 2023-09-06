@@ -1,9 +1,9 @@
-from App.Setup.Globals import folders
 from pygame.font import Font, get_init, init
 from pygame.color import Color
 from pygame.rect import Rect
 from pygame.surface import Surface
-from logging import warning
+
+from App.Setup.Globals import fontpath
 
 class FontStyle():
     """
@@ -14,9 +14,7 @@ class FontStyle():
             init()
 
         self.family_name = family_name
-        self.style_name = style_name
-        filename = style_name + file_extension
-        self.path = folders.get_filepath(family_name, filename)
+        self.style_name = style_name + file_extension
         self.size = size
 
     @property
@@ -26,13 +24,13 @@ class FontStyle():
     @size.setter
     def size(self, size: int) -> None:
         try:
-            self.font = Font(self.path, size)
+            self.font = Font(fontpath(self.family_name, self.style_name), size)
             self.__size = size
         except FileNotFoundError as e:
-            warning(e.args)
+            print(e.args)
             raise e
         except Exception as e:
-            warning(e.args, type(e))
+            print(e.args, type(e))
             raise e
             
 

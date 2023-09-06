@@ -1,53 +1,61 @@
-from App.Object.Image import Image
-from App.Setup.Globals import folders
-from pygame.transform import scale_by, flip
-from os.path import join
+from App.Object.Object import ImportedObject
+from App.Setup.Globals import heropath, enemypath, ALL_HERONAMES, ALL_ENEMYNAMES
 
-class CharacterImage(Image):
-    def __init__(self, folder_name: str, character_name: str):
-        super().__init__(folder_name, character_name)
+
+class CharacterImage(ImportedObject):
+    def __init__(self, name: str, filepath: str):
+        name = name.replace(".png", "").replace(".jpg", "").replace(".gif", "")
+        super().__init__(name, filepath)
         self.scale_by(2)
-        self.name = character_name.replace(".png", "")
-        self.alias = self.name
+
 
 class HeroImage(CharacterImage):
     def __init__(self, hero_name: str):
-        super().__init__("Hero", hero_name)
+        super().__init__(hero_name, heropath(hero_name))
+
 
 class EnemyImage(CharacterImage):
     def __init__(self, enemy_name: str):
-        super().__init__("Enemy", enemy_name)
+        super().__init__(enemy_name, enemypath(enemy_name))
+
 
 class PaladinImage(HeroImage):
     def __init__(self):
         super().__init__("Paladin.png")
 
+
 class RogueImage(HeroImage):
     def __init__(self):
         super().__init__("Rogue.png")
+
 
 class WizardImage(HeroImage):
     def __init__(self):
         super().__init__("Wizard.png")
         self.flip(True, False)
 
+
 class HunterImage(HeroImage):
     def __init__(self):
         super().__init__("Hunter.png")
 
+
 class PriestImage(HeroImage):
     def __init__(self):
         super().__init__("Priest.png")
+
 
 class SkullImage(EnemyImage):
     def __init__(self):
         super().__init__("Skull.png")
         self.flip(True, False)
 
+
 class MageImage(EnemyImage):
     def __init__(self):
         super().__init__("Mage.png")
         self.flip(True, False)
+
 
 def create_character_image(character_name: str) -> CharacterImage | None:
     match character_name:
@@ -68,23 +76,29 @@ def create_character_image(character_name: str) -> CharacterImage | None:
         case _:
             return None
 
+
 def create_all_hero_images() -> list[HeroImage]:
     heros: list[HeroImage] = list()
-    hero_files = folders.get_files("Hero")
-    for herofile in hero_files:
-        heros.append(create_character_image(herofile))
+    for herofile in ALL_HERONAMES:
+        hero = create_character_image(herofile)
+        if hero and isinstance(hero, HeroImage):
+            heros.append(hero)
     return heros
+
 
 def create_all_enemy_images() -> list[EnemyImage]:
     enemies: list[EnemyImage] = list()
-    enemy_files = folders.get_files("Enemy")
-    for enemyfile in enemy_files:
-        enemys.append(create_character_image(enemyfile))
+    for enemyfile in ALL_ENEMYNAMES:
+        enemy = create_character_image(enemyfile)
+        if enemy and isinstance(enemy, EnemyImage):
+            enemies.append(enemy)
     return enemies
+
 
 def create_all_character_images() -> list[CharacterImage]:
     heros = create_all_hero_images()
     enemies = create_all_enemy_images()
     characters: list[CharacterImage] = list()
-    characters.extend(heros).extend(enemies)
+    characters.extend(heros)
+    characters.extend(enemies)
     return characters
