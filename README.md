@@ -98,6 +98,3 @@ App/
     * metodo 'draw' agora retorna o que é necessario para apagar o que acabou de ser desenhado (superficie apagadora e posicao onde foi desenhado na superficie)
 * classe 'Screen' agora representa a superficie da tela do jogo. Todas subclasses de 'BaseObject' que apareceram na tela do jogo deve ser adicionados pelo metodo 'draw'.
 * a classe 'Screen' se encarrega de apagar corretamente tudo que foi desenhado nela, no entanto é necessário se atentar a ordem com que os objetos foram desenhados, pois a 'Screen' nao cuida disso e isso pode causar efeitos indesejados caso uma superficie que esteja embaixo de outra seja apagada primeiro
-
-# MUDANÇAS SENDO REPENSADAS
-* talvez seria interessante o objeto guardar o superficie em que foi desenhado, a posicao e o que estava ali antes dele aparecer

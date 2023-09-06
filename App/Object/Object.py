@@ -6,8 +6,7 @@ from pygame.transform import scale_by, flip, rotate
 from pygame.image import load
 
 class BaseObject:
-    """
-        brief summary of all Object's attributes:
+    """ brief summary of all Object's attributes:
 
         self.name: str
             This is the name to identify this instance of Object when printing it
@@ -20,16 +19,30 @@ class BaseObject:
             The coordinates are relative to the 'screen' attr
             It has the same size as the surface itself.
 
+        self.drawn: bool
+            This flat indicates if the Object was drawn by 'drawn' or erased by 'erase'
+
         self.hide: bool
             This flag indicates if the Object should have the same background as its screen when it gets drawn onto it.
-    """
+
+        self.vibration: int (px)
+            This controls how much an object 'vibrates' by the 'vibrate' method """
 
     def __init__(self, name: str, surface: Surface):
+        """ debugging purposes
+        surf = surface.copy()
+        surf.fill(Color(255, 0, 0))
+        surf.blit(surface, (0, 0))
+        surface = surf
+        """
+
         self.name = name
         self.image = surface
         self.rect: Rect = Rect((0, 0), surface.get_size())
-        self.hide = False
         self.drawn = False
+        # self.hide = False
+        self.vibration = 5
+
 
 
     def __str__(self) -> str:
@@ -47,25 +60,105 @@ class BaseObject:
 
 
     def draw(self, surface: Surface) -> tuple[Surface, Rect]:
+        """ Draw the entire object in a surface
+            The object's 'rect' attribute is used to control where it'll be drawn
+
+            Parameters:
+                surface: the surface where the object will be drawn onto
+            
+            Return: Tuple
+                1 element: a surface of what is beneath the object
+                2 element: a rect, which indicates the relative position where the object was drawn in the surface """
+
         if self.drawn:
             raise Exception(f"{self.name} can't be drawn again")
-        beneath = self.image.copy()
-        beneath.blit(surface, (0, 0), self.rect)
-        area = surface.blit(self.image, self.rect.topleft)
+
+        self.beneath = self.image.copy()
+        self.beneath.blit(surface, (0, 0), self.rect)
+        self.area = surface.blit(self.image, self.rect.topleft)
+        self.surface = surface
         self.drawn = True
-        return beneath, area
+        return self.beneath, self.area
 
 
-    def erase(self, surface: Surface, eraser: Surface, area: Rect) -> Rect:
-        """ replace an 'area' of a 'surface' with 'eraser'
-            this method 'assumes' that what's being replaced/erased is this object :)
-            because of this assumption, the 'drawn' attribute of this obj is set to False """
+    def erase(self) -> Rect:
+        """ Erase the entire object off the surface used previously by 'draw'
+
+            PS: when drawing onto the screen/pygame window, make sure to update
+            the portion of the screen that has changed, otherwise no visible
+            changes will be seen
+
+            Parameters:
+
+            Return: Rect
+                * the portion of the surface that has changed """
 
         if not self.drawn:
             raise Exception(f"{self.name} can't be erased")
-        area = surface.blit(eraser, area.topleft)
+
+        area = self.surface.blit(self.beneath, self.area.topleft)
+        if area.size == (0, 0):
+            raise Exception(f"{self.name} apparently was not erased")
+
+        del self.surface, self.area, self.beneath
         self.drawn = False
+
         return area
+
+
+    def refresh(self, area: Rect) -> tuple[Surface, Rect]:
+        """ repaints a portion of this object in the previously drawn surface 
+
+            Parameters:
+                area: the portion of this object that is going to be drawn. If None, then the entire object is redrawn.
+            
+            Return: Tuple
+                1 element: a surface of what is beneath the object
+                2 element: a rect, which indicates the relative position where the object was drawn in the surface """
+
+        if not self.drawn:
+            raise Exception(f"{self.name} can't be refreshed if not drawn")
+
+        beneath = Surface(area.size)
+        beneath.blit(self.image, area, area)
+        refreshed_area = self.surface.blit(self.image, self.rect.move(*area.topleft), area)
+
+        return beneath, refreshed_area
+
+
+    def replace(self, area: Rect, surface: Surface) -> Rect:
+        """ replaces a portion of this object with another surface
+
+            Parameters:
+                area: the portion of this object to be replaced by something else
+                surface: the replacer surface
+
+            Return: Rect
+                * the area of what has changed """
+
+        if not self.drawn:
+            raise Exception(f"{self.area} of {self.name} won't be replaced if not drawn")
+
+        if area.size != surface.get_size():
+            raise Exception(f"Apparently the area to be replaced and the surface's size mismatch. This can't happen.")
+
+        replaced_area = self.image.blit(surface, area)
+        _, replaced_area = self.refresh(replaced_area)
+
+        return replaced_area
+
+
+    def vibrate(self, surface: Surface) -> tuple[Surface, Rect]:
+        if not self.drawn:
+            # raise Exception(f"{self.name} can't be vibrated without being drawn")
+            return Surface((0, 0)), Rect(0, 0, 0, 0)
+
+        erased_area = self.erase()
+        self.shift(self.vibration, self.vibration)
+        beneath, area = self.draw(surface)
+        area = erased_area.union(area)
+        self.vibration *= -1
+        return beneath, area
 
 
     def scale_by(self, factor: float) -> None:
@@ -91,16 +184,7 @@ class BaseObject:
 
 class SizedObject(BaseObject):
     def __init__(self, name: str, size: tuple[int, int]):
-        surface = Surface(size)
-
-        """ debugging purposes
-        surf = surface.copy()
-        surf.fill(Color(255, 0, 0))
-        surf.blit(surface, (0, 0))
-        surface = surf
-        """
-
-        super().__init__(name, surface)
+        super().__init__(name, Surface(size))
 
 
 class ImportedObject(BaseObject):
@@ -109,12 +193,4 @@ class ImportedObject(BaseObject):
         min_rect = surface.get_bounding_rect()
         cropped_surface = Surface(min_rect.size, flags=surface.get_flags(), depth=surface.get_bitsize())
         cropped_surface.blit(surface, (0, 0), min_rect)
-
-        """ debugging purposes
-        surf = cropped_surface.copy()
-        surf.fill(Color(255, 0, 0))
-        surf.blit(cropped_surface, (0, 0))
-        cropped_surface = surf
-        """
-
         super().__init__(name, cropped_surface)

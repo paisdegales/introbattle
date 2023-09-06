@@ -4,7 +4,18 @@ from pygame.rect import Rect
 from pygame.display import init, get_init, set_mode, list_modes, set_caption, update
 
 class Screen:
-    """ Class responsible for creating/managing the user's display screen. """
+    """ Class responsible for creating/managing the user's display screen.
+
+        There are two ways of erasing an object off the screen:
+            1. call the 'erase' method of that object
+            2. blit to the screen what's beneath the object at its position
+        But methods involve updating the regions of the screen that have changed
+
+        The 'erase' method of the Screen class opts for the first method, but the
+        second one can also be implemented and works just as fine.
+
+        The second method for erasing objects grants the screen more control on how objects
+        are erased and this is the reason why it's supported (eventhough not implemented) """
 
     def __init__(self, display: tuple[int, int]) -> None:
         if not get_init():
@@ -48,19 +59,16 @@ class Screen:
 
         objects: list[BaseObject] = list()
         areas: list[Rect] = list()
-        surfaces: list[Surface] = list()
 
         keys = self.objects.keys()
         for name in names:
             if name not in keys:
                 continue
             objects.append(self.objects[name][0])
-            surfaces.append(self.objects[name][1])
-            areas.append(self.objects[name][2])
 
-        for obj, surface, area in zip(objects, surfaces, areas):
-            if obj.drawn:
-                obj.erase(self.screen, surface, area)
+        for obj in objects:
+            area = obj.erase()
+            areas.append(area)
 
         for name in names:
             if name not in keys:
@@ -72,38 +80,10 @@ class Screen:
         return areas
 
 
-    def refresh(self, name: str, area: Rect) -> Rect:
-        """ refresh a small area of an object on the screen
+    def queue(self, area: Rect) -> None:
+        """ queues a portion of the screen to be updated by 'update' """
 
-            area: the relative area of the object to be updated (Rect)
-
-            this method should be called when the object's surface has changed (AND
-             HAS NOT MOVED) but the screen still hasn't been updated
-
-            the idea is that:
-                # the object's image is changed before
-                erased_area = screen.update(name, area)
-            is better than:
-                # the object's image is changed before
-                erased_area_list = screen.erase(name) # len(list) == 1
-                drawn_area_list = screen.draw(obj) # len(list) == 1
-
-            why 'refresh' is better to update a single object:
-            * 'refresh' generates smaller rectangles for screen updates
-                > 'erase' and 'draw' both operate on the entire object
-            * less code
-            * 'refresh' returns a single Rect 
-                > 'erase' and 'draw' both return a list of Rectangles
-            * 'refresh' doesn't affect the 'objects' attribute
-                > this means that the erase operation of the entire object will
-                remain exactly the same after it's image got updated """
-
-        surface = self.objects[name][0]
-        coordinates = self.objects[name][2]
-        rect = self.screen.blit(surface.image, coordinates.move(*area.topleft).topleft, area)
-        self.changed.append(rect)
-
-        return rect
+        self.changed.append(area)
 
 
     def update(self) -> None:

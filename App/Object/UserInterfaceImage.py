@@ -75,12 +75,22 @@ class FillingBar(AssembledUserInterfaceImage):
 
 
     def update(self, percent: float) -> Rect:
+        """ decreases/increases the bar by how much it's filled
+            
+            Parameters:
+                percent: how much the fillbar is filled
+
+            Return: Rect
+                the area of the filling bar's surface that has changed """
+
         if (percent > 1) or (percent < 0):
             raise Exception("'update' method of FillingBar got something other than a percentage")
+
         self.percent = percent
-        w = int(self.rect.w * (1 - percent))
-        size = w, self.rect.h
-        r = Rect((self.rect.w - w, 0), size)
+        width = int(self.rect.w * (1 - percent))
+        size = width, self.rect.h
+        pos = self.rect.w - width, 0
+        r = Rect(pos, size)
         changed_area = rect(self.image, GRAY, r, border_top_right_radius=10, border_bottom_right_radius=10)
         return changed_area
 
