@@ -13,7 +13,7 @@ HERO_FOLDER = "Hero"
 ENEMY_FOLDER = "Enemy"
 UI_FOLDER = "UI"
 BACKGROUND_FOLDER = "Background"
-FONT_FOLDER = "Font"
+FONT_FOLDER = "Fonts"
 
 
 def enemypath(enemy_filename: str) -> str:

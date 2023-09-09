@@ -21,7 +21,6 @@ class Fighter(SizedObject):
         height = sum(map(lambda x: x.rect.h, self.components))
 
         # why +10? Answer: to ensure that this object will be able to vibrate without getting cropped by its surface's size
-        # 
         super().__init__(character_name, (width+10, height+10))
 
         self.hpbar.move("midtop", (int(width/2), 0))
@@ -88,6 +87,5 @@ class Fighter(SizedObject):
             return Rect(0, 0, 0, 0)
 
         _, r = component.vibrate(self.image)
-        self.refresh(r)
-
-        return r.move(*self.rect.topleft)
+        _, r = self.refresh(r)
+        return r

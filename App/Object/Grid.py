@@ -13,6 +13,11 @@ class Grid:
         self.number_columns: int = number_columns
         self.spacing: Rect = Rect((0, 0), spacing)
         self.position: Rect = Rect((0, 0), (number_columns * self.spacing.w, number_lines * self.spacing.h))
+        self.coordinates: list[list[Rect | None]] = list()
+        for i in range(self.number_lines):
+            self.coordinates.append(list())
+            for _ in range(self.number_columns):
+                self.coordinates[i].append(Rect(0, 0, spacing[0], spacing[1]))
         self.update()
 
 
@@ -21,7 +26,7 @@ class Grid:
         return "\n".join(string)
 
 
-    def move(self, vertex: str, relative_coordinates: tuple[int, int]):
+    def move(self, vertex: str, relative_coordinates: tuple[int, int]) -> None:
         """ Moving the grid should be the first to be done,
             since any 'shift' or 'use' operations will be
             discarded after the grid get's moved and a call
@@ -40,63 +45,42 @@ class Grid:
             This method is automatically called by '__init__'
             and 'move' methods and should not be explictly used """
 
-        self.coordinates: list[Rect | None] = list()
         for i in range(self.number_lines):
             for j in range(self.number_columns):
+                rect = self.coordinates[i][j]
+                if rect is None:
+                    continue
                 x = self.position.left + j*self.spacing.w
                 y = self.position.top + i*self.spacing.h
-                rect = self.spacing.copy().move((x, y))
-                self.coordinates.append(rect)
+                rect.topleft = x, y
 
 
-    def shift(self, shift_amount: tuple[int,int], line_index: int, column_index: int) -> None:
+    def shift(self, shift_amount: tuple[int,int], line_index: int | None = None, column_index: int | None = None) -> None:
         """ moves all elements which belong to the same line/column
             by a certain displacement value given as coordinates """
 
-        for index, rect in enumerate(self.coordinates):
-            if rect is not None and (index // self.number_columns) == line_index:
+        if line_index is not None:
+            for rect in self.coordinates[line_index]:
+                if rect is None:
+                    continue
                 rect.move_ip(shift_amount)
 
-        for index, rect in enumerate(self.coordinates):
-            if rect is not None and (index % self.number_lines) == column_index:
-                rect.move_ip(shift_amount)
-
-
-    def use(self, indexes: list[int]) -> None:
-        """ pick certain coordinates by index """
-
-        if not len(indexes):
+        if column_index is None:
             return
 
-        new_coords: list[Rect | None] = list()
-        for index, position in enumerate(self.coordinates):
-            if index in indexes:
-                new_coords.append(position)
-            else:
-                new_coords.append(None)
-        self.coordinates = new_coords
-
-
-    def positions(self, vertex: str) -> list[list[int]]:
-        positions: list[list[int]] = list()
-
-        for rect in self.coordinates:
+        for l in range(self.number_lines):
+            rect = self.coordinates[l][column_index] 
             if rect is not None:
-                positions.append(getattr(rect, vertex))
+                rect.move_ip(shift_amount)
 
+
+    def get_positions(self, vertex: str) -> list[tuple[int, int]]:
+        positions = list()
+        for i in range(self.number_lines):
+            for j in range(self.number_columns):
+                rect = self.coordinates[i][j]
+                if rect is None:
+                    continue
+                position = getattr(rect, vertex)
+                positions.append(position)
         return positions
-
-
-    def at(self, index: int, vertex: str = "topleft") -> list[int]:
-        size = len(self.coordinates)
-        if (index >= size) or (index < -size):
-            index %= size
-
-        if self.coordinates[index] is not None:
-            return getattr(self.coordinates[index], vertex)
-
-        while self.coordinates[index] is None:
-            index += 1
-            index %= size
-
-        return getattr(self.coordinates[index], vertex)

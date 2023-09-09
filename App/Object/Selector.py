@@ -1,52 +1,73 @@
+from App.Object.Grid import Grid
 from App.Object.Object import BaseObject
 from App.Object.UserInterfaceImage import ArrowImage
 from pygame.surface import Surface
 
 class Selector(BaseObject):
-    def __init__(self, name: str, surface: Surface, anchors: dict[str, tuple[int, int]], displacement: tuple[int, int]):
+    def __init__(self, name: str, surface: Surface, grid: Grid, displacement: tuple[int, int]):
         super().__init__(name, surface=surface)
-        self.anchors: dict[str, tuple[int, int]] = anchors
-        self.mnemonic: dict[int, str] = dict()
-        for index, k in enumerate(self.anchors.keys()):
-            x, y = self.anchors[k] 
-            self.anchors[k] = (x + displacement[0], y + displacement[1])
-            self.mnemonic[index] = k
-        self.current = 0
-        self.max = len(self.mnemonic.keys())
-        self.move_index(0)
+        self.grid = grid
+        self.line = 0
+        self.column = 0
+        self.displacement = displacement
+        self.last_action = 'l'
+        self.select()
 
 
-
-    def get_current_ref(self) -> str:
-        return self.mnemonic[self.current]
-
-
-    def move_index(self, index: int) -> None:
-        self.move(self.mnemonic[index])
+    def right(self):
+        self.column += 1
+        self.column %= self.grid.number_columns
+        self.last_action = 'r'
+        return self
 
 
-    def move(self, anchor: str) -> None:
-        if anchor not in self.anchors.keys():
-            print("Error when moving selector!")
-            return
-        self.rect.midbottom = self.anchors[anchor]
+    def left(self):
+        self.column -= 1
+        self.column %= self.grid.number_columns
+        self.last_action = 'l'
+        return self
 
 
-    def right(self) -> None:
-        raise NotImplementedError()
+    def up(self):
+        self.line -= 1
+        self.line %= self.grid.number_lines
+        self.last_action = 'u'
+        return self
 
 
-    def left(self) -> None:
-        raise NotImplementedError()
+    def down(self):
+        self.line += 1
+        self.line %= self.grid.number_lines
+        self.last_action = 'd'
+        return self
 
 
-    def up(self) -> None:
-        raise NotImplementedError()
+    def select(self, vertex: str = "topleft") -> list[int]:
+        rect = self.grid.coordinates[self.line][self.column]
+        if rect is None:
+            if self.last_action == 'l':
+                movement = self.left
+            elif self.last_action == 'r':
+                movement = self.right
+            elif self.last_action == 'u':
+                movement = self.up
+            else:
+                movement = self.down
+            moves = 3
+            while moves:
+                movement()
+                rect = self.grid.coordinates[self.line][self.column]
+                if rect is not None:
+                    break
+                moves -= 1
+            if not moves:
+                raise Exception("selector: out of anchors to jump to in this line/column")
+        coordinates = list(getattr(rect, vertex))
+        self.move(vertex, tuple(coordinates))
+        self.shift(*self.displacement)
+        return coordinates
 
-
-    def down(self) -> None:
-        raise NotImplementedError()
 
 class DefaultSelector(Selector):
-    def __init__(self, anchors: dict[str, tuple[int, int]], displacement: tuple[int, int]):
-        super().__init__("default selector", ArrowImage().image, anchors, displacement)
+    def __init__(self, grid: Grid, displacement: tuple[int, int]):
+        super().__init__("default selector", ArrowImage().image, grid, displacement)
