@@ -1,15 +1,16 @@
-from App.Screen.Screen import Screen
+from App.Screen import Screen
 from App.Scene.Scene import Scene, EndOfScene
 from App.Scene.Menu.Menu import Menu
 from App.Scene.Battle.Battle import Battle
-from pygame.locals import KEYDOWN, MOUSEBUTTONDOWN, QUIT
+from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, QUIT
 from pygame.time import Clock
-from pygame.event import set_blocked, set_allowed, get as get_events
+from pygame.event import poll, set_blocked, set_allowed
+from pygame.key import set_repeat
 from logging import warning
 
 class Game:
-    def __init__(self, display_resolution: tuple[int, int], fps: int = 30, flags: int = 0) -> None:
-        self.screen = Screen().new_display(display_resolution, flags)
+    def __init__(self, display_resolution: tuple[int, int], fps: int = 30) -> None:
+        self.screen = Screen(display_resolution)
         self.scenes: list[Scene] = list()
         self.clock = Clock()
         self.fps = fps
@@ -26,7 +27,9 @@ class Game:
         # blocking all event types pygame has
         set_blocked(None)
         # allowing only a few types
-        set_allowed([MOUSEBUTTONDOWN, KEYDOWN, QUIT])
+        set_allowed([QUIT, KEYUP, KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN])
+        # keys being pressed start generating KEYDOWN_PRESSED
+        set_repeat(1000, int(1000/60))
 
         scene_output: list  = list()
         #scene_output = ["Paladin", "Wizard", "Hunter"]
@@ -34,22 +37,19 @@ class Game:
             # the output of the last scene serves as input to the next scene
             scene_input = scene_output
             scene.load_initial_frame(*scene_input)
-            scene.draw_initial_frame()
             #print(scene)
             scene_output.clear()
-
             while True:
+                self.clock.tick(self.fps)
+                event = poll()
                 try:
-                    events = get_events()
-                    scene.check_events(events)
+                    scene.check_event(event)
                 except EndOfScene as e:
                     info = e.args
                     #print(info)
                     break
                 except Exception as e:
                     raise e
-
-                time_elapsed = self.clock.tick(self.fps)
-
+                self.screen.update()
             scene_output = scene.terminate()
             scene.erase()

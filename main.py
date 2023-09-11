@@ -45,13 +45,11 @@ hunter.move("center", (400, 300))
 grid = Grid(3, 3, (40, 40))
 grid.move("topleft", (200, 200))
 grid.coordinates[1][1] = None
-#print(grid)
 
 heros_grid = Grid(2, 3, (150, 100))
 heros_grid.move("center", (400, 300))
 heros_grid.coordinates[1][2] = None
 heros_grid.shift((50, 0), 1, None)
-#print(heros_grid)
 
 sel = DefaultSelector(heros_grid, (0, -8))
 sel.select("midtop")
@@ -85,6 +83,19 @@ while True:
     elif event.type == QUIT:
         exit()
     elif event.type == KEYUP:
+        if event.key == K_UP:
+            r = g.select("up")
+            screen.queue(r)
+        elif event.key == K_DOWN:
+            r = g.select("down")
+            screen.queue(r)
+        elif event.key == K_LEFT:
+            r = g.select("left")
+            screen.queue(r)
+        elif event.key == K_RIGHT:
+            r = g.select("right")
+            screen.queue(r)
+
         if not hunter.drawn:
             continue
         if event.key == K_a:
