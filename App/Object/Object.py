@@ -1,3 +1,4 @@
+from App.Setup.Utils import object_logger
 from pygame.surface import Surface
 from pygame.rect import Rect
 from pygame.draw import line
@@ -7,43 +8,20 @@ from pygame.image import load
 
 
 class BaseObject:
-    """ brief summary of all Object's attributes:
-
-        self.name: str
-            This is the name to identify this instance of Object when printing it
-
-        self.image: pygame.surface.Surface
-            This is the surface which contains what will be drawn onto the screen
-
-        self.rect: pygame.rect.Rect
-            This rectangle serves the purpose of positioning the Object's surface.
-            The coordinates are relative to the 'screen' attr
-            It has the same size as the surface itself.
-
-        self.drawn: bool
-            This flat indicates if the Object was drawn by 'drawn' or erased by 'erase'
-
-        self.hide: bool
-            This flag indicates if the Object should have the same background as its screen when it gets drawn onto it.
-
-        self.vibration: int (px)
-            This controls how much an object 'vibrates' by the 'vibrate' method """
-
     def __init__(self, name: str, surface: Surface):
-        """ debugging purposes
-        surf = surface.copy()
-        surf.fill(Color(255, 0, 0))
-        surf.blit(surface, (0, 0))
-        surface = surf
-        """
+        object_logger.info('%s initialized', name)
 
-        self.name = name
-        self.image = surface
+        # the name to identify this instance when printing it
+        self.name: str = name
+        # the surface which contains what will be drawn onto the screen
+        self.image: Surface = surface
+        # the Object's image positioning. It's coordinates are relative to the surface it's drawn onto.
         self.rect: Rect = Rect((0, 0), surface.get_size())
-        self.drawn = False
-        self.hide = False
-        self.vibration = 5
-
+        self.drawn: bool = False
+        # indicates if the Object should have the same background as its screen when it gets drawn onto it.
+        self.hide: bool = False
+        # controls how much an object 'vibrates' when calling 'vibrate'
+        self.vibration: int = 5
 
 
     def __str__(self) -> str:
@@ -63,6 +41,7 @@ class BaseObject:
     def draw(self, surface: Surface) -> tuple[Surface, Rect]:
         """ Draw the entire object in a surface
             The object's 'rect' attribute is used to control where it'll be drawn
+            This method returns everything that is necessary to erase the object from where it was drawn.
 
             Parameters:
                 surface: the surface where the object will be drawn onto
@@ -73,6 +52,7 @@ class BaseObject:
 
         if self.drawn:
             raise Exception(f"{self.name} can't be drawn again")
+
 
         if self.hide:
             bak = self.image.copy()
@@ -86,6 +66,9 @@ class BaseObject:
         self.area = surface.blit(self.image, self.rect.topleft)
         self.surface = surface
         self.drawn = True
+
+        object_logger.info('%s was drawn from %s to %s in a %s surface', self.name, str(self.area.topleft), str(self.area.bottomright), repr(surface.get_size()))
+
         return self.beneath, self.area
 
 
@@ -182,9 +165,6 @@ class BaseObject:
     def vibrate_component(self, component_name: str) -> Rect:
         """ make a certain component of this object vibrate
 
-            this method works by calling the 'vibrate' method of an attribute named 'component_name'.
-            it only works if the attribute is an instance of 'BaseObject'
-
             Return: Rect
                 * the area of the object that has changed """
 
@@ -217,6 +197,7 @@ class BaseObject:
         line(self.image, color, self.rect.topleft, self.rect.topright, width=thickness)
         line(self.image, color, self.rect.topright, self.rect.bottomright, width=thickness+2)
         line(self.image, color, self.rect.bottomright, self.rect.bottomleft, width=thickness+2)
+
 
 
 class SizedObject(BaseObject):

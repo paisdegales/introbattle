@@ -3,6 +3,7 @@ from App.Scene.Menu.Local.GuildOptions import GuildOptions
 from App.Scene.Menu.Local.Positioning import *
 from App.Scene.Scene import Scene, EndOfScene
 from App.Screen import Screen
+from App.Setup.Utils import menu_scene_logger
 from pygame.locals import NOEVENT, K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
 from pygame.mouse import get_pos
 from pygame.event import Event
@@ -16,10 +17,16 @@ class Menu(Scene):
 
     def load_initial_frame(self) -> None:
         try:
+            menu_scene_logger.info("Banner is about to be created and positioned")
             self.banner = Banner()
+
+            menu_scene_logger.info("GuildOptions is about to be created and positioned")
             self.guild_options = GuildOptions()
+
             self.objects.append(self.banner)
             self.objects.append(self.guild_options)
+
+            menu_scene_logger.info("All menu scene objects are about to be added to the display")
             self.screen.draw(*self.objects)
         except Exception as e:
             e.add_note(f"Failed when loading the menu: {type(e)}")
@@ -60,13 +67,9 @@ class Menu(Scene):
 
 
     def erase(self) -> None:
-        try:
-            #self.background.erase()
-            self.banner.erase()
-            self.guild_options.erase()
-        except Exception as e:
-            e.add_note("Failed when trying to erase the menu scene!")
-            raise e
+        #self.background.erase()
+        self.banner.erase()
+        self.guild_options.erase()
 
 
     def terminate(self) -> list[str]:

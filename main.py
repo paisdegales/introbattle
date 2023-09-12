@@ -14,13 +14,15 @@ from App.Scene.Menu.Local.Banner import Banner
 from App.Scene.Menu.Local.HeroPortrait import HeroPortrait
 from App.Screen import Screen
 from App.Setup.Globals import SCREENSIZE
+import tracemalloc
 
 
 def main() -> None:
-    pass
+    tracemalloc.start(10)
     introbattle = Game(display_resolution=SCREENSIZE)
     introbattle.load_scenes()
     introbattle.run()
+    tracemalloc.stop()
 
 
 def test() -> None:
@@ -31,11 +33,9 @@ def test() -> None:
     bio = -2
     dead_frames = 0
 
-
     set_blocked(None)
     set_allowed([QUIT, KEYUP, KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN])
     set_repeat(1000, int(1000/60)) # keys being pressed start generating KEYDOWN_PRESSED
-
 
     paladin = ImportedObject("paladin", join("App", "Resource", "Character", "Hero", "Paladin.png"))
     paladin.scale_by(1.5)
@@ -55,7 +55,7 @@ def test() -> None:
     sel = DefaultSelector(heros_grid, (0, -8))
     sel.select("midtop")
 
-    banner = Banner((220, 80))
+    banner = Banner()
     banner.move("bottomleft", (0, 600))
 
     portrait = HeroPortrait("Wizard")
@@ -64,7 +64,7 @@ def test() -> None:
     portrait.move("midtop", anchors[0])
     portrait2.move("midtop", anchors[1])
 
-    g = GuildOptions((200, 200))
+    g = GuildOptions()
     screen.draw(hunter, paladin, portrait)
 
     while True:
@@ -78,7 +78,7 @@ def test() -> None:
         if event.type == NOEVENT:
             if dead_frames >= 30:
                 bio *= -1
-                s, r = paladin.vibrate(screen.screen)
+                s, r = paladin.vibrate(screen.image)
                 screen.queue(r)
                 r = hunter.vibrate_component("character")
                 screen.queue(r)
@@ -145,7 +145,7 @@ def test() -> None:
                 elif event.key == K_l:
                     sel.right()
                 sel.select("midtop")
-                _, r = sel.draw(screen.screen)
+                _, r = sel.draw(screen.image)
                 screen.queue(r)
         elif event.type == MOUSEBUTTONDOWN:
             x, y = get_pos()

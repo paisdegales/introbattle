@@ -7,6 +7,7 @@ from App.Scene.Menu.Local.HeroPortrait import HeroPortrait
 from App.Scene.Menu.Local.Positioning import                \
         GUILDOPTIONS_GRID_SPACING, GUILDOPTIONS_POSITION,   \
         SELECTOR_DISPLACEMENT
+from App.Setup.Utils import menu_scene_guildoptions_logger as logger
 
 
 class GuildOptions(SizedObject):
@@ -17,8 +18,11 @@ class GuildOptions(SizedObject):
         self.grid.shift((0, 16)) # make room for the selector to move
 
         self.portraits: list[HeroPortrait] = list()
+
+        logger.info("Creating all hero images...")
         self.heros = create_all_hero_images()
         for hero, position in zip(self.heros, self.grid.get_positions("midtop")):
+            logger.info("The %s's portrait is about to be created", hero.name)
             h = HeroPortrait(hero.name)
             h.move("midtop", position)
             self.portraits.append(h)
@@ -35,6 +39,7 @@ class GuildOptions(SizedObject):
 
 
     def go(self, direction: str) -> Rect:
+        logger.info("Selector is movind %s", direction)
         erased = self.selector.erase()
         if direction == "left":
             self.selector.left()

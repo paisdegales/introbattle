@@ -15,7 +15,7 @@ class Scene:
     def __init__(self, screen: Screen) -> None:
         self.screen = screen
         self.objects = list()
-        self.background = BackgroundImage(self.screen.screen.get_size())
+        self.background = BackgroundImage(self.screen.image.get_size())
         self.objects.append(self.background)
         self.noevent_counter = 0
 
