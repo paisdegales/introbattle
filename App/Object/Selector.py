@@ -11,6 +11,7 @@ class Selector(BaseObject):
         self.column = 0
         self.displacement = displacement
         self.last_action = 'l'
+        self.tip = "midbottom" # control's the vertex of the selector which points to smth
         self.select()
 
 
@@ -63,7 +64,7 @@ class Selector(BaseObject):
             if not moves:
                 raise Exception("selector: out of anchors to jump to in this line/column")
         coordinates = list(getattr(rect, vertex))
-        self.move(vertex, tuple(coordinates))
+        self.move(self.tip, tuple(coordinates))
         self.shift(*self.displacement)
         return coordinates
 

@@ -57,7 +57,23 @@ class Grid:
 
     def shift(self, shift_amount: tuple[int,int], line_index: int | None = None, column_index: int | None = None) -> None:
         """ moves all elements which belong to the same line/column
-            by a certain displacement value given as coordinates """
+            by a certain displacement value given as coordinates
+
+            if both line_index and column_index are None, all elements
+            are shifted
+
+            if both line_index and column_index are not None, only 1 element
+            is shifted """
+
+        if not (line_index or column_index):
+            for i in range(self.number_lines):
+                for j in range(self.number_columns):
+                    rect = self.coordinates[i][j]
+                    if rect is None:
+                        continue
+                    rect.move_ip(shift_amount)
+            return
+
 
         if line_index is not None:
             for rect in self.coordinates[line_index]:

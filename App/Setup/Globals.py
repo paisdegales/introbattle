@@ -3,7 +3,7 @@ from os.path import join
 from os import listdir
 
 
-SCREENSIZE = 800, 600
+SCREENSIZE = 1024, 768
 
 
 APP_FOLDER = "App"

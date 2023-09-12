@@ -1,9 +1,9 @@
 from App.Scene.Menu.Local.Banner import Banner
 from App.Scene.Menu.Local.GuildOptions import GuildOptions
 from App.Scene.Menu.Local.Positioning import *
-from App.Scene.Scene import Scene
+from App.Scene.Scene import Scene, EndOfScene
 from App.Screen import Screen
-from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
+from pygame.locals import NOEVENT, K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
 from pygame.mouse import get_pos
 from pygame.event import Event
 
@@ -16,11 +16,8 @@ class Menu(Scene):
 
     def load_initial_frame(self) -> None:
         try:
-            self.background.move(*BACKGROUND_POSITION)
-            self.banner = Banner("OpenSans")
-            self.banner.load("Introbattle!", size = BANNER_SIZE, vertex="center")
-            self.banner.move(*BANNER_POSITION)
-            self.guild_options = GuildOptions((200, 200))
+            self.banner = Banner()
+            self.guild_options = GuildOptions()
             self.objects.append(self.banner)
             self.objects.append(self.guild_options)
             self.screen.draw(*self.objects)
@@ -30,24 +27,36 @@ class Menu(Scene):
 
 
     def check_event(self, event: Event) -> None:
-        if event.type == QUIT:
+        if event.type == NOEVENT:
+            self.noevent_counter += 1
+            if self.noevent_counter != VIBRATION_SPEED:
+                return
+            r = self.guild_options.vibrate_selection()
+            self.screen.queue(r)
+            self.noevent_counter = 0
+        elif event.type == QUIT:
             exit()
         elif event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
                 x, y = get_pos()
                 print(f"X: {x}, Y: {y}")
         elif event.type == KEYDOWN:
+            r = None
             if event.key == K_UP:
-                self.guild_options.select("up")
+                r = self.guild_options.go("up")
             elif event.key == K_DOWN:
-                self.guild_options.select("down")
+                r = self.guild_options.go("down")
             elif event.key == K_LEFT:
-                self.guild_options.select("left")
+                r = self.guild_options.go("left")
             elif event.key == K_RIGHT:
-                self.guild_options.select("right")
+                r = self.guild_options.go("right")
             elif event.key == K_z:
-                # self.selector.select(self.player_options)
-                pass
+                self.player_options.append(self.guild_options.select())
+                if len(self.player_options) == 3:
+                    raise EndOfScene()
+
+            if r:
+                self.screen.queue(r)
 
 
     def erase(self) -> None:

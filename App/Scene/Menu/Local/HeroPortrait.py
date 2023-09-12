@@ -1,9 +1,10 @@
 from App.Font.Family import FontFamily
 from App.Font.Pen import Pen
 from App.Object.CharacterImage import create_character_image
-from App.Object.Object import SizedObject
+from App.Object.Object import BaseObject, SizedObject
 from App.Scene.Menu.Local.Positioning import HEROPORTRAIT_IMAGESIZE, HEROPORTRAIT_LITTLEBOX_SIDE
 from App.Setup.Globals import GRAY, DARK_GRAY, WHITE
+from pygame.rect import Rect
 
 
 class HeroPortrait(SizedObject):

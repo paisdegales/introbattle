@@ -5,6 +5,7 @@ from pygame.color import Color
 from pygame.transform import scale_by, flip, rotate
 from pygame.image import load
 
+
 class BaseObject:
     """ brief summary of all Object's attributes:
 
@@ -40,7 +41,7 @@ class BaseObject:
         self.image = surface
         self.rect: Rect = Rect((0, 0), surface.get_size())
         self.drawn = False
-        # self.hide = False
+        self.hide = False
         self.vibration = 5
 
 
@@ -72,6 +73,13 @@ class BaseObject:
 
         if self.drawn:
             raise Exception(f"{self.name} can't be drawn again")
+
+        if self.hide:
+            bak = self.image.copy()
+            bak.set_colorkey(Color(0, 0, 0))
+            bak.blit(self.image, (0, 0))
+            self.image.blit(surface, (0, 0), self.rect)
+            self.image.blit(bak, (0, 0))
 
         self.beneath = self.image.copy()
         self.beneath.blit(surface, (0, 0), self.rect)
@@ -149,16 +157,45 @@ class BaseObject:
 
 
     def vibrate(self, surface: Surface) -> tuple[Surface, Rect]:
+        """ make this entire object vibrate
+
+            the vibration performs the following steps:
+                1. the object is erased
+                2. the object is shifted by 'self.vibration' pixels
+                3. the object is redrawn on the same surface as before
+
+            Return: Rect
+                * the area of the Object that has changed
+                * the area's coordinates are relative to the surface the object is currently drawn onto """
+
         if not self.drawn:
             # raise Exception(f"{self.name} can't be vibrated without being drawn")
             return Surface((0, 0)), Rect(0, 0, 0, 0)
-
         erased_area = self.erase()
         self.shift(self.vibration, self.vibration)
         beneath, area = self.draw(surface)
         area = erased_area.union(area)
         self.vibration *= -1
         return beneath, area
+
+
+    def vibrate_component(self, component_name: str) -> Rect:
+        """ make a certain component of this object vibrate
+
+            this method works by calling the 'vibrate' method of an attribute named 'component_name'.
+            it only works if the attribute is an instance of 'BaseObject'
+
+            Return: Rect
+                * the area of the object that has changed """
+
+        if not self.drawn:
+            return Rect(0, 0, 0, 0)
+        component = getattr(self, component_name)
+        if not isinstance(component, BaseObject):
+            raise Exception(f"{component_name} can't be vibrated!")
+        _, r = component.vibrate(self.image)
+        _, r = self.refresh(r)
+        return r
 
 
     def scale_by(self, factor: float) -> None:

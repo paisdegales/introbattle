@@ -76,16 +76,3 @@ class Fighter(SizedObject):
         changed = area.move(*position.topleft)
         _, changed = self.refresh(changed)
         return changed
-
-
-    def vibrate_component(self, component_name: str) -> Rect:
-        if not self.drawn:
-            return Rect(0, 0, 0, 0)
-
-        component = getattr(self, component_name)
-        if not isinstance(component, BaseObject):
-            return Rect(0, 0, 0, 0)
-
-        _, r = component.vibrate(self.image)
-        _, r = self.refresh(r)
-        return r
