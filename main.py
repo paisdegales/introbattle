@@ -5,6 +5,7 @@ from pygame.locals import KEYUP, KEYDOWN, K_LEFT, K_RIGHT, K_UP, K_DOWN, MOUSEBU
 from pygame.mouse import get_pos
 from pygame.time import Clock
 from pygame.key import set_repeat
+from App.Object.CharacterImage import create_all_enemy_images
 from App.Object.Fighter import Fighter
 from App.Object.Grid import Grid
 from App.Object.Object import ImportedObject
@@ -64,8 +65,18 @@ def test() -> None:
     portrait.move("midtop", anchors[0])
     portrait2.move("midtop", anchors[1])
 
+    enemies = create_all_enemy_images()
+    enemies_grid = Grid(2, 1, (100, 100))
+    enemies_grid.move("center", screen.image.get_rect().center)
+    enemies_grid.shift((50, 0), line_index=1, column_index=None)
+    anchors = enemies_grid.get_positions("midtop")
+    enemy1 = enemies[0]
+    enemy1.move("midtop", anchors[0])
+    enemy2 = enemies[1]
+    enemy2.move("midtop", anchors[1])
+
     g = GuildOptions()
-    screen.draw(hunter, paladin, portrait)
+    screen.draw(paladin, enemy1, enemy2)
 
     while True:
 
@@ -83,7 +94,6 @@ def test() -> None:
                 r = hunter.vibrate_component("character")
                 screen.queue(r)
                 r = portrait.vibrate_component("hero")
-                print(r)
                 screen.queue(r)
                 dead_frames = 0
             dead_frames+=1
@@ -155,5 +165,5 @@ def test() -> None:
 
 
 if __name__ == "__main__":
-    main()
-    #test()
+    #main()
+    test()
