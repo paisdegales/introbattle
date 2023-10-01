@@ -27,10 +27,7 @@ class Grid:
 
 
     def move(self, vertex: str, relative_coordinates: tuple[int, int]) -> None:
-        """ Moving the grid should be the first to be done,
-            since any 'shift' or 'use' operations will be
-            discarded after the grid get's moved and a call
-            to rebuild it from scratch is made by 'update' """
+        """ Moves the grid and updates all its points """
 
         setattr(self.position, vertex, relative_coordinates)
         self.update()

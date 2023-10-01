@@ -3,8 +3,9 @@ from App.Scene.Menu.Local.GuildOptions import GuildOptions
 from App.Scene.Menu.Local.Positioning import *
 from App.Scene.Scene import Scene, EndOfScene
 from App.Screen import Screen
+from App.Setup.Globals import ANIMATE
 from App.Setup.Utils import menu_scene_logger
-from pygame.locals import NOEVENT, K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
+from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
 from pygame.mouse import get_pos
 from pygame.event import Event
 
@@ -34,13 +35,9 @@ class Menu(Scene):
 
 
     def check_event(self, event: Event) -> None:
-        if event.type == NOEVENT:
-            self.noevent_counter += 1
-            if self.noevent_counter != VIBRATION_SPEED:
-                return
+        if event.type == ANIMATE:
             r = self.guild_options.vibrate_selection()
             self.screen.queue(r)
-            self.noevent_counter = 0
         elif event.type == QUIT:
             exit()
         elif event.type == MOUSEBUTTONDOWN:
@@ -61,7 +58,6 @@ class Menu(Scene):
                 self.player_options.append(self.guild_options.select())
                 if len(self.player_options) == 3:
                     raise EndOfScene()
-
             if r:
                 self.screen.queue(r)
 

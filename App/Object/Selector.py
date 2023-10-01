@@ -11,7 +11,7 @@ class Selector(BaseObject):
         self.column = 0
         self.displacement = displacement
         self.last_action = 'l'
-        self.tip = "midbottom" # control's the vertex of the selector which points to smth
+        self.tip = "midbottom" # controls the vertex of the selector which points to smth
         self.select()
 
 
@@ -44,6 +44,14 @@ class Selector(BaseObject):
 
 
     def select(self, vertex: str = "topleft") -> list[int]:
+        """ Moves the selector inside its grid after calls to 'right', 'left', 'up', 'down' were made
+            
+            Parameters:
+                vertex: the rectangle's vertex that should be pointed by this selector
+
+            Return: List
+                The coordinates that the selector now points to """
+
         rect = self.grid.coordinates[self.line][self.column]
         if rect is None:
             if self.last_action == 'l':
@@ -63,10 +71,10 @@ class Selector(BaseObject):
                 moves -= 1
             if not moves:
                 raise Exception("selector: out of anchors to jump to in this line/column")
-        coordinates = list(getattr(rect, vertex))
-        self.move(self.tip, tuple(coordinates))
+        coordinates: tuple[int, int] = getattr(rect, vertex)
+        self.move(self.tip, coordinates)
         self.shift(*self.displacement)
-        return coordinates
+        return list(coordinates)
 
 
 class DefaultSelector(Selector):

@@ -17,7 +17,6 @@ class Scene:
         self.objects = list()
         self.background = BackgroundImage(self.screen.image.get_size())
         self.objects.append(self.background)
-        self.noevent_counter = 0
 
     def load_initial_frame(self, *args) -> None:
         raise NotImplementedError()

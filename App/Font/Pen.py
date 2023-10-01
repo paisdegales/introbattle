@@ -17,3 +17,8 @@ class Pen():
     def write(self, text: str) -> BaseObject:
         surface = self.family.render(self.style, text, self.size, self.text_color, self.background_color, self.area, self.vertex)
         return BaseObject(text + " text", surface)
+
+
+    def render_size(self, text: str) -> tuple[int, int]:
+        size = self.family.get_render_size(self.style, text, self.size)
+        return size

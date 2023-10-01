@@ -90,7 +90,6 @@ App/
 
 # Fazendo agora
 1. SISTEMA DE COMBATE
-* criar as classes de fighter para todos os herois e inimigos
 * criar a classe de ability, attack, defense para todos os herois
     * essa classe tera que receber um objeto da classe Fighter (um Fighter tem uma Ability)
 * criar ataques e defesas para todos os herois e inimigos
@@ -102,3 +101,10 @@ App/
 * a cena de Battle precisa ser reconstruida do zero
 * padronizar o nome das pastas local para Local
 * sistema de eventos, objetos locais
+
+
+O DESENHO DO 'BOX' MAIS ESPECIFICAMENTE DO CHOOSE ACTION N ESTA 100%:
+    EH PRECISO PENSAR MELHOR SOBRE OS RETANGULOS QUE ESTAO SENDO RETORNADOS PARA SEREM ATUALIZADOS
+    ESSES RETANGULOS SAO RELATIVOS A SURFACE DO 'BOX' EM SI, NAO A DA TELA
+    ISSO SIGNIFICA QUE DEVERIAM TER QUE SER 'rect.move(box.rect.topleft)' PARA VIRAREM RELATIVOS A ORIGEM DA TELA
+

@@ -1,12 +1,14 @@
 from App.Screen import Screen
 from App.Scene.Scene import Scene, EndOfScene
 from App.Scene.Menu.Menu import Menu
+from App.Setup.Globals import ANIMATE
 #from App.Scene.Battle.Battle import Battle
 from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, QUIT
-from pygame.time import Clock
+from pygame.time import Clock, set_timer
 from pygame.event import poll, set_blocked, set_allowed
 from pygame.key import set_repeat
 from logging import warning
+
 
 class Game:
     def __init__(self, display_resolution: tuple[int, int], fps: int = 30) -> None:
@@ -24,10 +26,12 @@ class Game:
             warning("No game scenes available. The game won't start.")
             return
 
+        # creating and setting a custom type to manage animations
+        set_timer(ANIMATE, 500)
         # blocking all event types pygame has
         set_blocked(None)
         # allowing only a few types
-        set_allowed([QUIT, KEYUP, KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN])
+        set_allowed([QUIT, KEYUP, KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, ANIMATE])
         # keys being pressed start generating KEYDOWN_PRESSED
         set_repeat(1000, int(1000/60))
 

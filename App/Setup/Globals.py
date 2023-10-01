@@ -1,6 +1,8 @@
+from pygame.event import custom_type
 from pygame.color import Color
 from os.path import join
 from os import listdir
+
 
 
 SCREENSIZE = 1024, 768
@@ -44,3 +46,6 @@ BLACK = Color(0, 0, 0)
 GRAY = Color(120, 120, 120)
 DARK_GRAY = Color(50, 50, 50)
 LIGHT_GRAY = Color(150, 150, 150)
+
+
+ANIMATE = custom_type()

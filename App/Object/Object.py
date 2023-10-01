@@ -8,6 +8,10 @@ from pygame.image import load
 
 
 class BaseObject:
+    """ Base class to support positioning, transforming, updating, erasing and drawing objects to surfaces
+
+        It works like Sprites, except that this class is not intended to be used by a 'Group' class, but rather it works by itself """
+
     def __init__(self, name: str, surface: Surface):
         object_logger.info('%s initialized', name)
 
@@ -48,7 +52,7 @@ class BaseObject:
             
             Return: Tuple
                 1 element: a surface of what is beneath the object
-                2 element: a rect, which indicates the relative position where the object was drawn in the surface """
+                2 element: a rect, which indicates the RELATIVE POSITION where the object was drawn in the surface """
 
         if self.drawn:
             raise Exception(f"{self.name} can't be drawn again")
@@ -147,9 +151,10 @@ class BaseObject:
                 2. the object is shifted by 'self.vibration' pixels
                 3. the object is redrawn on the same surface as before
 
-            Return: Rect
-                * the area of the Object that has changed
-                * the area's coordinates are relative to the surface the object is currently drawn onto """
+            Return: Tuple
+                1. a surface of what is beneath the object
+                2. the area of the Object that has changed
+                    * the area's coordinates are relative to the surface the object is currently drawn onto """
 
         if not self.drawn:
             # raise Exception(f"{self.name} can't be vibrated without being drawn")

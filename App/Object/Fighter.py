@@ -1,13 +1,14 @@
 from pygame.rect import Rect
-from pygame.surface import Surface
 from App.Object.Object import BaseObject, SizedObject
 from App.Object.CharacterImage import create_character_image
 from App.Object.UserInterfaceImage import HealthBar
 from App.Object.UserInterfaceImage import ManaBar
 from App.Object.UserInterfaceImage import StaminaBar
+from App.Object.Ability import AttackAbility, DefenseAbility
+
 
 class Fighter(SizedObject):
-    def __init__(self, character_name: str, max_hp: int, max_mp, max_stamina: int):
+    def __init__(self, character_name: str, max_hp: int, max_mp: int, max_stamina: int, resistance: int):
         self.character = create_character_image(character_name)
         if self.character is None:
             raise Exception(f"No character named {character_name} was found!")
@@ -34,9 +35,12 @@ class Fighter(SizedObject):
         self.max_hp = max_hp
         self.max_mp = max_mp
         self.max_stamina = max_stamina
+        self.resistance = resistance
         self.current_hp = max_hp
         self.current_mp = max_mp
         self.current_stamina = max_stamina
+        self.attacks: dict[str, AttackAbility] = dict()
+        self.defenses: dict[str, DefenseAbility] = dict()
 
 
     def take_damage(self, damage: int) -> Rect:
@@ -76,3 +80,83 @@ class Fighter(SizedObject):
         changed = area.move(*position.topleft)
         _, changed = self.refresh(changed)
         return changed
+
+
+    def add_attack(self, name: str, value: int, cost: int):
+        self.attacks[name] = AttackAbility(name, value, cost)
+
+
+    def add_defense(self, name: str, value: int, cost: int):
+        self.defenses[name] = DefenseAbility(name, value, cost)
+
+
+class HunterFighter(Fighter):
+    def __init__(self):
+        super().__init__("Hunter", 30, 15, 20, 20)
+        self.add_attack("Quickshot", 20, 5)
+        self.add_defense("Camouflage", 5, 5)
+
+
+class PaladinFighter(Fighter):
+    def __init__(self):
+        super().__init__("Paladin", 40, 10, 25, 30)
+        self.add_attack("Charge", 15, 2)
+        self.add_defense("Divine Shield", 5, 5)
+
+
+class PriestFighter(Fighter):
+    def __init__(self):
+        super().__init__("Priest", 25, 40, 10, 10)
+        self.add_attack("Curse", 10, 5)
+        self.add_defense("Pray", 5, 5)
+        self.add_defense("Heal", 20, 10)
+
+
+class RogueFighter(Fighter):
+    def __init__(self):
+        super().__init__("Rogue", 25, 20, 30, 10)
+        self.add_attack("Stab", 30, 4)
+        self.add_defense("Evade", 5, 5)
+
+
+class MageFighter(Fighter):
+    def __init__(self):
+        super().__init__("Mage", 25, 30, 15, 10)
+        self.add_attack("Avadakedabra", 35, 10)
+        self.add_defense("Hocus Pocus", 5, 5)
+
+
+class SkullFighter(Fighter):
+    def __init__(self):
+        super().__init__("Skull", 100, 10, 10, 30)
+        self.add_attack("Backbone", 5, 5)
+        self.add_defense("Endurance", 5, 2)
+
+
+class WizardFighter(Fighter):
+    def __init__(self):
+        super().__init__("Wizard", 50, 100, 50, 15)
+        self.add_attack("Fireball", 10, 5)
+        self.add_defense("Mana Shield", 5, 40)
+
+
+def create_guild(names: list[str]) -> list[Fighter]:
+    guild = list()
+    for name in names:
+        name = name.capitalize()
+        match name:
+            case "Hunter":
+                guild.append(HunterFighter())
+            case "Priest":
+                guild.append(PriestFighter())
+            case "Paladin":
+                guild.append(PaladinFighter())
+            case "Mage":
+                guild.append(MageFighter())
+            case "Rogue":
+                guild.append(RogueFighter())
+            case "Skull":
+                guild.append(SkullFighter())
+            case "Wizard":
+                guild.append(WizardFighter())
+    return guild
