@@ -1,14 +1,15 @@
 from App.Font.Family import FontFamily
 from App.Font.Pen import Pen
 from App.Game import Game
+from App.Scene.Battle.Local.Combat import Combat
 from App.Object.CharacterImage import create_all_enemy_images
-from App.Object.Fighter import Fighter, HunterFighter
-from App.Object.Combat import Combat
+from App.Object.Fighter import Fighter, HunterFighter, PaladinFighter, SkullFighter
 from App.Object.Grid import Grid
 from App.Object.Object import ImportedObject, SizedObject
 from App.Object.Selector import DefaultSelector, Selector
 from App.Object.Ability import Ability, AttackAbility
 from App.Scene.Battle.Local.Box import Box
+from App.Scene.Battle.Local.CharacterBand import EnemyBand, HeroBand
 from App.Scene.Menu.Local.GuildOptions import GuildOptions
 from App.Scene.Menu.Local.Banner import Banner
 from App.Scene.Menu.Local.HeroPortrait import HeroPortrait
@@ -32,6 +33,123 @@ def main() -> None:
 
 
 def test() -> None:
+    screen = Screen(SCREENSIZE)
+    fps = Clock()
+    movement = 5
+
+    set_timer(ANIMATE, 500)
+    set_blocked(None)
+    set_allowed([QUIT, KEYUP, KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, ANIMATE])
+    set_repeat(1000, int(1000/60)) # keys being pressed start generating KEYDOWN_PRESSED
+
+    paladin = PaladinFighter()
+
+    attacker = HunterFighter()
+    attacker.move("center", screen.image.get_rect().center)
+    defender = SkullFighter()
+    defender.move("topright", screen.image.get_rect().topright)
+
+    combat = Combat()
+
+    box = Box()
+    box.move("topleft", (100, 100))
+
+    heros = HeroBand(["Hunter", "Wizard", "Priest"])
+    heros.move("topleft", (240, 130))
+    enemies = EnemyBand(["Skull", "Mage", "Paladin"])
+    enemies.move("topleft", (600, 80))
+
+    ability1 = Ability("sabao", 12, 15)
+    ability2 = Ability("bisnaga", 12, 15)
+    ability3 = Ability("salamandra", 12, 15)
+    it = iter([None, ["Attack", "Defense"], [ability1, ability2, ability3], None])
+
+    screen.draw(heros, enemies)
+
+    while True:
+
+        fps.tick(60)
+        #print(fps.get_fps())
+
+        event = poll()
+
+        if event.type == ANIMATE:
+            if paladin.drawn:
+                s, r = paladin.vibrate(screen.image)
+                screen.queue(r)
+        elif event.type == QUIT:
+            exit()
+        elif event.type == KEYUP:
+
+            if attacker.drawn and defender.drawn:
+                if event.key == K_e:
+                    rects = combat.attack(attacker, defender, "Quickshot")
+                    for r in rects:
+                        screen.queue(r)
+
+            if box.drawn:
+                if event.key == K_f:
+                    rects = box.motion("right")
+                    for rect in rects:
+                        screen.queue(rect)
+                if event.key == K_g:
+                    rects = box.motion("down")
+                    for rect in rects:
+                        screen.queue(rect)
+                if event.key == K_h:
+                    # rects = box.choose_action(["Attack", "Defend"])
+                    args = next(it)
+                    rects = box.next_state(args)
+                    if box.selector.drawn:
+                        option_selected = box.select()
+                        print(option_selected)
+                    for rect in rects:
+                        # 'refresh' uses coordinates relative to the 'box's topleft point
+                        _, r = box.refresh(rect)
+                        # on the other hand, queue uses coordinates relative to the screen's topleft point
+                        # since each rect is relatively positioned around 'box', we need to move it so that
+                        # it now references the screen's topleft point
+                        screen.queue(rect.move(*box.rect.topleft))
+
+        elif event.type == KEYDOWN:
+            if event.key in [K_UP, K_DOWN, K_LEFT, K_RIGHT]:
+                rects = list()
+                if event.key == K_UP:
+                    #paladin.shift(0, -movement)
+                    rects = heros.go("up")
+                elif event.key == K_DOWN:
+                    #paladin.shift(0, movement)
+                    rects = heros.go("down")
+                elif event.key == K_LEFT:
+                    #paladin.shift(-movement, 0)
+                    pass
+                else:
+                    #paladin.shift(movement, 0)
+                    pass
+
+                if not len(rects):
+                    continue
+
+                for rect in rects:
+                    # on the other hand, queue uses coordinates relative to the screen's topleft point
+                    # since each rect is relatively positioned around 'box', we need to move it so that
+                    # it now references the screen's topleft point
+                    _, r = heros.refresh(rect)
+                    screen.queue(r)
+                #screen.erase(paladin.name)
+                #screen.draw(paladin)
+            elif event.key in [K_h, K_j, K_k, K_l]:
+                if event.key == K_h:
+                    fighter = heros.select()
+                    print(fighter.name)
+        elif event.type == MOUSEBUTTONDOWN:
+            x, y = get_pos()
+            print(x, y)
+
+        screen.update()
+
+
+def dump():
     screen = Screen(SCREENSIZE)
     fps = Clock()
     movement = 5
@@ -115,7 +233,8 @@ def test() -> None:
     ability2 = Ability("bisnaga", 12, 15)
     ability3 = Ability("salamandra", 12, 15)
     #r = box.choose_action(["Attack", "Defend"])
-    r = box.choose_ability([ability1, ability2, ability3])
+    #r = box.choose_ability([ability1, ability2, ability3])
+    it = iter([None, ["Attack", "Defense"], [ability1, ability2, ability3], None])
 
     screen.draw(paladin, box)
 
@@ -125,7 +244,6 @@ def test() -> None:
         fps.tick(60)
         #print(fps.get_fps())
 
-        # for event in get():
         event = poll()
 
         if event.type == ANIMATE:
@@ -177,7 +295,6 @@ def test() -> None:
             if box.drawn:
                 if event.key == K_f:
                     rects = box.motion("right")
-                    #print(rects)
                     for rect in rects:
                         screen.queue(rect)
                 if event.key == K_g:
@@ -185,16 +302,19 @@ def test() -> None:
                     for rect in rects:
                         screen.queue(rect)
                 if event.key == K_h:
-                    # option_selected = box.select()
-                    rects = box.choose_action(["Attack", "Defend"])
+                    # rects = box.choose_action(["Attack", "Defend"])
+                    args = next(it)
+                    rects = box.next_state(args)
+                    if box.selector.drawn:
+                        option_selected = box.select()
+                        print(option_selected)
                     for rect in rects:
-                        # o rect desse metodo tem que ser relativo
-                        box.refresh(rect)
-                        # o rect desse metodo tem que ser a posicao absoluta na tela
-                        # eis a merda
-                        # nao eh dificil resolver ('rect.move(...)'), mas sla
-                        screen.queue(rect)
-                    print(rects)
+                        # 'refresh' uses coordinates relative to the 'box's topleft point
+                        _, r = box.refresh(rect)
+                        # on the other hand, queue uses coordinates relative to the screen's topleft point
+                        # since each rect is relatively positioned around 'box', we need to move it so that
+                        # it now references the screen's topleft point
+                        screen.queue(rect.move(*box.rect.topleft))
 
         elif event.type == KEYDOWN:
             if event.key in [K_UP, K_DOWN, K_LEFT, K_RIGHT]:
@@ -233,4 +353,5 @@ def test() -> None:
 
 if __name__ == "__main__":
     #main()
+    #dump()
     test()

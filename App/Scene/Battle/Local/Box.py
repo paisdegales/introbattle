@@ -17,20 +17,32 @@ class Box(SizedObject):
         self.selector.tip = "midright"
         self.selector.rotate(90)
         self.selector.select("midleft")
+        # 0: choosing a hero
+        # 1: choosing an action
+        # 2: choosing an ability
+        # 3: choosing a target
+        self.state_counter = 0
         super().__init__("Player box", (450, 250))
+        self.clear()
 
 
     def clear(self) -> Rect:
         return self.image.fill(GRAY)
 
 
-    def choose_hero(self) -> Rect:
+    def choose_hero(self) -> list[Rect]:
         # 'selecting' a hero will be done by a separate object
-        self.clear()
+        rects: list[Rect] = list()
+        r = self.clear()
+        rects.append(r)
         text = self.pen.write("Choose a hero")
-        text.move("center", self.rect.center)
+        # it's not possible to use 'self.rect.center' to center the text in the box, because
+        # 'self.rect.center' does not reference the box's topleft point, but rather the screen's topleft point
+        # this is a problem, because the text needs a relative reference to its parental object so it gets positioned inside of it
+        text.move("center", (self.rect.w//2, self.rect.h//2))
         _, r = text.draw(self.image)
-        return r.move(*self.rect.topleft)
+        rects.append(r)
+        return rects
 
 
     def choose_action(self, actions: list[str]) -> list[Rect]:
@@ -59,7 +71,7 @@ class Box(SizedObject):
         return rects
     
 
-    def choose_ability(self, abilities: list[Ability]):
+    def choose_ability(self, abilities: list[Ability]) -> list[Rect]:
         rects: list[Rect] = list()
         rects.append(self.clear())
 
@@ -85,13 +97,41 @@ class Box(SizedObject):
         return rects
 
 
-    def choose_target(self):
+    def choose_target(self) -> list[Rect]:
         # 'selecting' a target will be done by a separate object
-        self.clear()
+        rects: list[Rect] = list()
+        r = self.clear()
+        rects.append(r)
         text = self.pen.write("Choose a target")
-        text.move("center", self.rect.center)
+        text.move("center", (self.rect.w//2, self.rect.h//2))
         _, r = text.draw(self.image)
-        return r.move(*self.rect.topleft)
+        rects.append(r)
+        return rects
+
+
+    def next_state(self, *args) -> list[Rect]:
+        """ easily transition between the four stages the box can under go during a turn
+
+            1st stage: waiting for the player to choose a hero
+            2nd stage: waiting for the player to select what kind of action he wants to perform (attack, defend, etc)
+            3rd stage: waiting for the player to choose an ability to cast
+            4th stage: waiting for the player to choose a target (if possible)
+
+            Return: list[Rect]
+                * a list of all the areas that have changed in self's surface in order to go to the next state """
+
+        rects: list[Rect] = list()
+        if self.state_counter == 0:
+            rects = self.choose_hero()
+        elif self.state_counter == 1:
+            rects = self.choose_action(args[0])
+        elif self.state_counter == 2:
+            rects = self.choose_ability(args[0])
+        elif self.state_counter == 3:
+            rects = self.choose_target()
+        self.state_counter += 1
+        self.state_counter %= 4
+        return rects
 
 
     def motion(self, direction: str) -> list[Rect]:

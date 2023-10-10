@@ -1,40 +1,77 @@
-from App.Scene.Battle.Locals.FightingCharacter import create_fighter_image
-from App.Object.Object import Object
-from pygame.surface import Surface
+from pygame.rect import Rect
+from App.Object.Fighter import Fighter, create_guild
+from App.Object.Grid import Grid
+from App.Object.Object import SizedObject
+from App.Object.Selector import DefaultSelector
+from App.Setup.Globals import RED
 
 
-class CharacterBand(Object):
-    def __init__(self, characters: list[str]):
-        fighters = list()
-        for character in characters:
-            character = create_fighter_image(character)
-            fighters.append(character)
-        heights = map(lambda x: x.rect.h, fighters)
-        widths = list(map(lambda x: x.rect.w, fighters))
-        height = sum(heights)
-        width = 2*max(widths)
+class CharacterBand(SizedObject):
+    def __init__(self, name: str, characters: list[str], grid: Grid):
+        super().__init__(name, (grid.w, grid.h))
+        self.grid = grid
+        self.fighters = create_guild(characters)
+        for fighter, position in zip(self.fighters, grid.get_positions("midtop")):
+            fighter.move("midtop", position)
+            fighter.draw(self.image)
+        self.selector = DefaultSelector(self.grid, (0, 0))
+        self.selector.select("midtop")
+        self.selector.draw(self.image)
+        self.make_contour(RED, 3)
 
-        super().__init__((width, height))
-        self.alias = f"Character Band"
-        self.camouflage = True
-        for index, fighter in enumerate(fighters):
-            fighter.camouflage = True
-            self.add(index, fighter)
+
+    def go(self, direction: str) -> list[Rect]:
+        """ move the selector up, down, left or right
+
+            this method erases the selector off self's surface and redraws it
+            in a different position.
+
+            the modified areas use coordinates that are relative to the topleft
+            vertex of the self's surface
+
+            Parameters:
+                direction: the direction the selector should follow ('up', 'down', 'left', 'right')
+
+            Return: List[Rect]
+                1. list[0] = the erased area
+                1. list[1] = the drawn area """
+
+        rects: list[Rect] = list()
+
+        r = self.selector.erase()
+        rects.append(r)
+
+        movement = getattr(self.selector, direction)
+        movement()
+        self.selector.select("midtop")
+
+        _, r = self.selector.draw(self.image)
+        rects.append(r)
+
+        return rects
+
+    
+    def select(self) -> Fighter:
+        line_index = self.selector.line*self.selector.grid.number_columns
+        column_index = self.selector.column*self.selector.grid.number_lines
+        fighter = self.fighters[line_index+column_index]
+        return fighter
 
 
 class HeroBand(CharacterBand):
     def __init__(self, heros: list[str]):
         if len(heros) != 3:
             return
-        super().__init__(heros)
-        self.addons[0].move("topleft", (0, 0))
-        self.addons[1].move("topleft", self.addons[0].rect.bottomright)
-        self.addons[2].move("topleft", (0, self.addons[1].rect.bottom))
+        grid = Grid(3, 1, (100, 150))
+        grid.move("topleft", (0, 10))
+        grid.shift((50, 0), line_index=1)
+        super().__init__("Hero band", heros, grid)
 
 
 class EnemyBand(CharacterBand):
-    def __init__(self):
-        enemies = ["Skull", "Mage"]
-        super().__init__(enemies)
-        self.addons[0].move("topleft", (0, 0))
-        self.addons[1].move("topleft", self.addons[0].rect.bottomright)
+    def __init__(self, enemies: list[str]):
+        grid = Grid(3, 1, (100, 150))
+        grid.move("topleft", (0, 10))
+        grid.shift((50, 0), line_index=0)
+        grid.shift((50, 0), line_index=2)
+        super().__init__("Enemy band", enemies, grid)

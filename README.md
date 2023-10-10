@@ -99,12 +99,44 @@ App/
 
 2. CENAS
 * a cena de Battle precisa ser reconstruida do zero
-* padronizar o nome das pastas local para Local
 * sistema de eventos, objetos locais
 
 
-O DESENHO DO 'BOX' MAIS ESPECIFICAMENTE DO CHOOSE ACTION N ESTA 100%:
-    EH PRECISO PENSAR MELHOR SOBRE OS RETANGULOS QUE ESTAO SENDO RETORNADOS PARA SEREM ATUALIZADOS
-    ESSES RETANGULOS SAO RELATIVOS A SURFACE DO 'BOX' EM SI, NAO A DA TELA
-    ISSO SIGNIFICA QUE DEVERIAM TER QUE SER 'rect.move(box.rect.topleft)' PARA VIRAREM RELATIVOS A ORIGEM DA TELA
+Eu acho que a classe seletor poderia ser melhorada de alguma forma.
+Isso porque diferentes objetos da classe CompoundObject (que alias ainda não existe,
+mas que seria uma subclasse de BaseObject especifica para conter outras instancias
+de BaseObject enquanto atributos) e que tem um objeto da classe 'Selector'
+acabam implementando metodos relacionados varias vezes para conseguir:
+atualizar o desenho do seletor em suas imagens, obter uma referencia ao que o seletor aponta e etc
 
+
+Isso faz com que metodos como 'go' e 'select' sejam implementados na classe CompoundObject varias vezes
+Isso é bem chato e introduz muitos problemas de manuntenção do código, pois diferentes maneiras de se fazer
+uma mesma coisa acabam coexistindo de maneira silenciosa no codigo.
+Exemplos de classes que implementam esses metodos são: 'Box', 'CharacterBand', 'GuildOptions' and maybe more
+
+
+Outra reclamação: o metodo 'select' da classe CompoundObject apresenta um pessimo nome, isso porque a classe Selector
+tambem implementa um metodo com o mesmo nome mas com semantica diferente. Na class CompoundObject
+esse metodo serve para devolver o que a seta está apontando atualmente na tela. Ja na classe Selector esse metodo
+serve para atualizar a posicao do seletor apos multiplas chamadas dos metodos 'up', 'down', 'left' e 'right'
+
+
+Outra rotina corriqueira no codigo mas que acaba sendo implementada diversas maneiras um pouco diferente entre si
+é o desenho/atualização na tela de um componente da classe CompoundObject. Em geral, a rotina envolve:
+1. apagar e redesenhar a superficie do componente em questão na superficie do objeto raiz (CompoundObject)
+2. retornar as areas que foram modificadas ao apagar e desenhar o componente
+    * essas areas são da classe 'Rect' e utilizam coordenadas relativas em relação ponto topleft do objeto raiz
+3. coletar as areas modificadas e chamar o metodo 'refresh' do objeto raiz para atualizar (na tela em que esta desenhado) aquelas regioes suas que sofreram modificacao
+4. coletar a area modificada pelo metodo 'refresh' do passo anterior e adiciona-la a fila de atualizacoes pendentes na tela pelo metodo 'queue' da classe Tela
+
+
+# PLANO DE AÇÃO
+1. Implementar o método 'go' para a classe Selector, que tomara conta de
+  apagar/redesenhar o seletor após ter sido movido por chamadas a um dos
+  metodos 'up', 'down', 'left' ou 'right', seguido de uma chamada ao metodo
+  'select'
+    * Testar o seletor novo na main
+    * Apagar o boiler plate code contido nas classes que implementavam o metodo 'go' elas mesmas
+2. Voltar a implementar a classe 'TurnHandler'
+    * se encarrega de atualizar todos os componentes necessarios da cena de batalha após o jogador escolher o heroi, ação, habilidade e alvo

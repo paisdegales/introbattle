@@ -141,6 +141,10 @@ class WizardFighter(Fighter):
 
 
 def create_guild(names: list[str]) -> list[Fighter]:
+    """ Create a group of fighters. There are no restrictions for what groups can be created.
+
+        Return: list[Fighter] """
+
     guild = list()
     for name in names:
         name = name.capitalize()

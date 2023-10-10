@@ -14,6 +14,8 @@ class Grid:
         self.spacing: Rect = Rect((0, 0), spacing)
         self.position: Rect = Rect((0, 0), (number_columns * self.spacing.w, number_lines * self.spacing.h))
         self.coordinates: list[list[Rect | None]] = list()
+        self.w: int = number_columns * spacing[0] # total width of this grid (it does not change!!!)
+        self.h: int = number_lines * spacing[1] # total height of this grid (it does not change!!!)
         for i in range(self.number_lines):
             self.coordinates.append(list())
             for _ in range(self.number_columns):
@@ -51,6 +53,32 @@ class Grid:
                 y = self.position.top + i*self.spacing.h
                 rect.topleft = x, y
 
+        self.update_size()
+
+
+    def update_size(self) -> None:
+        """ update the grid's size by looking for the max X and Y coordinates inside of it """
+
+        last_col: list[Rect] = list()
+        last_line: list[Rect] = list()
+
+        for line_index in range(self.number_lines):
+            rect = self.coordinates[line_index][-1]
+            if rect is None:
+                continue
+            last_col.append(rect)
+
+        for column_index in range(self.number_columns):
+            rect = self.coordinates[-1][column_index]
+            if rect is None:
+                continue
+            last_line.append(rect)
+
+        max_x = max([r.bottomright[0] for r in last_col])
+        max_y = max([r.bottomright[1] for r in last_col])
+        self.w = max_x
+        self.h = max_y
+
 
     def shift(self, shift_amount: tuple[int,int], line_index: int | None = None, column_index: int | None = None) -> None:
         """ moves all elements which belong to the same line/column
@@ -62,29 +90,35 @@ class Grid:
             if both line_index and column_index are not None, only 1 element
             is shifted """
 
-        if not (line_index or column_index):
+        if line_index is None and column_index is None:
             for i in range(self.number_lines):
                 for j in range(self.number_columns):
                     rect = self.coordinates[i][j]
                     if rect is None:
                         continue
                     rect.move_ip(shift_amount)
+            self.update_size()
             return
 
 
         if line_index is not None:
-            for rect in self.coordinates[line_index]:
+            for index in range(self.number_columns):
+                rect = self.coordinates[line_index][index]
                 if rect is None:
                     continue
                 rect.move_ip(shift_amount)
 
+
         if column_index is None:
+            self.update_size()
             return
+
 
         for l in range(self.number_lines):
             rect = self.coordinates[l][column_index] 
             if rect is not None:
                 rect.move_ip(shift_amount)
+        self.update_size()
 
 
     def get_positions(self, vertex: str) -> list[tuple[int, int]]:
