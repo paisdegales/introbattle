@@ -14,8 +14,8 @@ class Combat:
     def act(self, attacker: Fighter, attack_name: str, defender: Fighter, defense_name: str | None = None) -> list[Rect]:
         rects = list()
         if defense_name is not None:
-            rects.append(self.defend(defender, defense_name))
-        rects.append(self.attack(attacker, defender, attack_name))
+            rects.extend(self.defend(defender, defense_name))
+        rects.extend(self.attack(attacker, defender, attack_name))
         if defense_name is not None:
             defender.resistance //= 2
         return rects

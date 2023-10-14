@@ -1,8 +1,8 @@
 from App.Screen import Screen
 from App.Scene.Scene import Scene, EndOfScene
 from App.Scene.Menu.Menu import Menu
+from App.Scene.Battle.Battle import Battle
 from App.Setup.Globals import ANIMATE
-#from App.Scene.Battle.Battle import Battle
 from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, QUIT
 from pygame.time import Clock, set_timer
 from pygame.event import poll, set_blocked, set_allowed
@@ -19,7 +19,7 @@ class Game:
 
     def load_scenes(self) -> None:
         self.scenes.append(Menu(self.screen))
-        #self.scenes.append(Battle(self.screen))
+        self.scenes.append(Battle(self.screen))
     
     def run(self) -> None:
         if len(self.scenes) == 0:

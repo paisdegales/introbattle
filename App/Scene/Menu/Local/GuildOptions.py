@@ -28,7 +28,8 @@ class GuildOptions(SizedObject):
             self.portraits.append(h)
             setattr(self, name, h)
         self.selector = DefaultSelector(self.grid, SELECTOR_DISPLACEMENT)
-        self.selector.select("midtop")
+        self.selector.jump("midtop")
+        self.selector.link(map(lambda x: x.hero, self.portraits))
 
         super().__init__("guild options", self.grid.position.bottomright)
         for portrait in self.portraits:
@@ -38,37 +39,47 @@ class GuildOptions(SizedObject):
         self.hide = True
 
 
-    def go(self, direction: str) -> Rect:
+    def go(self, direction: str) -> list[Rect]:
+        """ moves the selector up, down, left or right
+
+            Return: all areas that have changed in this object """
+
         logger.info("Selector is moving %s", direction)
-        erased = self.selector.erase()
-        if direction == "left":
-            self.selector.left()
-        elif direction == "right":
-            self.selector.right()
-        elif direction == "up":
-            self.selector.up()
-        elif direction == "down":
-            self.selector.down()
-        self.selector.select(vertex="midtop")
-        _, drawn = self.selector.draw(self.image)
-        rect = erased.union(drawn)
-        self.refresh(rect)
-        rect = rect.move(self.rect.topleft)
-        return rect
+        # relative areas: areas relative to this objects layout
+        # absolute areas: areas relative to the screen layout
+        areas: list[Rect] = list()
+        relative_areas = self.selector.redraw_upon_movement(direction)
+        for relative_area in relative_areas:
+            # since the GuildOptions object is meant to be drawn on the screen,
+            # any call to its 'refresh' will return absolute areas/coordinates,
+            # that is, this object is positioned around the window's topleft corner
+            _, absolute_areas = self.refresh(relative_area)
+            areas.append(absolute_areas)
+        return areas
 
 
     def select(self) -> str:
-        index = self.selector.line * self.selector.grid.number_columns + self.selector.column
-        hero = self.portraits[index].hero
+        """ select the hero that is currently selected by the cursor
+
+            Return: all areas that have changed in this object """
+
+        hero = self.selector.select()
         if not isinstance(hero, HeroImage):
             raise Exception('Error when selecting hero: cant select non hero')
         return hero.name
 
 
     def vibrate_selection(self) -> Rect:
+        """ vibrate the hero that is currently selected by the cursor
+
+            Return: all areas that have changed in this object """
+
         component = getattr(self, self.select())
         if not isinstance(component, HeroPortrait):
             return Rect(0, 0, 0, 0)
         r = component.vibrate_component("hero")
+        # since the GuildOptions object is meant to be drawn on the screen,
+        # any call to its 'refresh' will return absolute areas/coordinates,
+        # that is, this object is positioned around the window's topleft corner
         _, r = self.refresh(r)
         return r

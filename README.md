@@ -75,10 +75,19 @@ App/
 
 ---
 
-# TODO
 
-* criar todos os objetos capazes de se automanipularem (ou seja, atualizarem suas 'images')
-    * refazer todos objetos de todas as cenas (fazer objetos completos, que consigam gerar superficies novas sob demanda)
+
+# PLANO DE AÇÃO AGORA
+1. Implementar exceções (talvez na classe Combat ou na propria BattleScene) que informem quando um personagem 'morre' e quando uma Band 'morre' completamente
+2. Tentar corrigir o problema do black spot inicial do seletor com os objetos da classe CharacterBand
+3. Padronizar a cena, de modo que seus objetos e ela propria utilize variáveis definidas no arquivo 'Globals.py' ou 'Locals.py'
+4. Implemetar o botao que permite voltar para a escolha anterior na batalha
+5. Trocar o botao que seleciona coisas na cena de batalha (<Enter> -> Z)
+6. Fazer com que a velocidade dos herois influenciem na ordem com que as ações são tomadas
+
+
+# BACKLOG
+
 * reforçar uso de variaveis apenas definidas no arquivo Globals.py
 * talvez implementar algo usando a biblioteca 'argparse'
 * talvez investigar como está o uso de memoria ram usando a biblioteca 'tracemalloc'
@@ -87,41 +96,17 @@ App/
 * talvez usar mais o modulo 'doctest', que é muito util alias
 * talvez melhorar as anotacoes que foram usadas usando o modulo 'typing'
 * criar arquivo de log usando o modulo 'logging'
-
-# Fazendo agora
-1. SISTEMA DE COMBATE
-* criar a classe de ability, attack, defense para todos os herois
-    * essa classe tera que receber um objeto da classe Fighter (um Fighter tem uma Ability)
-* criar ataques e defesas para todos os herois e inimigos
-* fazer sistema de combate
-    * provavelmente uma classe (talvez chamada Combat) que consiga fazer um Fighter atacar outro Fighter, ambos usando uma habilidade
-    * ao conseguir fazer um fighter atacar outro, fazer um metodo que permita um conjunto de fighters (baseado no atributo speed) atacar um outro conjunto de enemies
-
-2. CENAS
-* a cena de Battle precisa ser reconstruida do zero
-* sistema de eventos, objetos locais
+* Talvez ir destruindo alguns objetos com `del` para poupar ram
+* Criar terceira e ultima cena do jogo: banner com "You win!" em verde ou "You lose!" em vermelho, com um moving character controlavel com pelas setas do teclado
 
 
-Eu acho que a classe seletor poderia ser melhorada de alguma forma.
-Isso porque diferentes objetos da classe CompoundObject (que alias ainda não existe,
-mas que seria uma subclasse de BaseObject especifica para conter outras instancias
-de BaseObject enquanto atributos) e que tem um objeto da classe 'Selector'
-acabam implementando metodos relacionados varias vezes para conseguir:
-atualizar o desenho do seletor em suas imagens, obter uma referencia ao que o seletor aponta e etc
+# COISAS FEITAS
+* a classe Selector passou por mudanças. O nome do metodo 'select' foi mudado para 'jump' para refletir melhor o que aquele metodo fazia. Agora, o nome 'select' foi apropriado por um novo metodo, que devolve o simbolo que é apontado pelo seletor atualmente. Alem disso, um novo metodo 'draw_upon_movement' é responsavel por repintar o seletor apos chamadas aos metodos 'up', 'down', 'left' e/ou 'right'
+* TurnHandler removido; adicionava complexidade desnecessaria
+* Combate primitivo implementado
 
 
-Isso faz com que metodos como 'go' e 'select' sejam implementados na classe CompoundObject varias vezes
-Isso é bem chato e introduz muitos problemas de manuntenção do código, pois diferentes maneiras de se fazer
-uma mesma coisa acabam coexistindo de maneira silenciosa no codigo.
-Exemplos de classes que implementam esses metodos são: 'Box', 'CharacterBand', 'GuildOptions' and maybe more
-
-
-Outra reclamação: o metodo 'select' da classe CompoundObject apresenta um pessimo nome, isso porque a classe Selector
-tambem implementa um metodo com o mesmo nome mas com semantica diferente. Na class CompoundObject
-esse metodo serve para devolver o que a seta está apontando atualmente na tela. Ja na classe Selector esse metodo
-serve para atualizar a posicao do seletor apos multiplas chamadas dos metodos 'up', 'down', 'left' e 'right'
-
-
+# ANOTAÇÕES
 Outra rotina corriqueira no codigo mas que acaba sendo implementada diversas maneiras um pouco diferente entre si
 é o desenho/atualização na tela de um componente da classe CompoundObject. Em geral, a rotina envolve:
 1. apagar e redesenhar a superficie do componente em questão na superficie do objeto raiz (CompoundObject)
@@ -130,13 +115,11 @@ Outra rotina corriqueira no codigo mas que acaba sendo implementada diversas man
 3. coletar as areas modificadas e chamar o metodo 'refresh' do objeto raiz para atualizar (na tela em que esta desenhado) aquelas regioes suas que sofreram modificacao
 4. coletar a area modificada pelo metodo 'refresh' do passo anterior e adiciona-la a fila de atualizacoes pendentes na tela pelo metodo 'queue' da classe Tela
 
-
-# PLANO DE AÇÃO
-1. Implementar o método 'go' para a classe Selector, que tomara conta de
-  apagar/redesenhar o seletor após ter sido movido por chamadas a um dos
-  metodos 'up', 'down', 'left' ou 'right', seguido de uma chamada ao metodo
-  'select'
-    * Testar o seletor novo na main
-    * Apagar o boiler plate code contido nas classes que implementavam o metodo 'go' elas mesmas
-2. Voltar a implementar a classe 'TurnHandler'
-    * se encarrega de atualizar todos os componentes necessarios da cena de batalha após o jogador escolher o heroi, ação, habilidade e alvo
+```python
+    s, r = paladin.vibrate(screen.image)
+    screen.queue(r)
+    r = hunter.vibrate_component("character")
+    screen.queue(r)
+    r = portrait.vibrate_component("hero")
+    screen.queue(r)
+```

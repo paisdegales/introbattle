@@ -82,11 +82,11 @@ class Fighter(SizedObject):
         return changed
 
 
-    def add_attack(self, name: str, value: int, cost: int):
+    def add_attack(self, name: str, value: int, cost: int) -> None:
         self.attacks[name] = AttackAbility(name, value, cost)
 
 
-    def add_defense(self, name: str, value: int, cost: int):
+    def add_defense(self, name: str, value: int, cost: int) -> None:
         self.defenses[name] = DefenseAbility(name, value, cost)
 
 
@@ -119,9 +119,16 @@ class RogueFighter(Fighter):
         self.add_defense("Evade", 5, 5)
 
 
+class WizardFighter(Fighter):
+    def __init__(self):
+        super().__init__("Wizard", 30, 20, 25, 15)
+        self.add_attack("Fireball", 10, 5)
+        self.add_defense("Mana Shield", 5, 40)
+
+
 class MageFighter(Fighter):
     def __init__(self):
-        super().__init__("Mage", 25, 30, 15, 10)
+        super().__init__("Mage", 50, 100, 50, 15)
         self.add_attack("Avadakedabra", 35, 10)
         self.add_defense("Hocus Pocus", 5, 5)
 
@@ -131,13 +138,6 @@ class SkullFighter(Fighter):
         super().__init__("Skull", 100, 10, 10, 30)
         self.add_attack("Backbone", 5, 5)
         self.add_defense("Endurance", 5, 2)
-
-
-class WizardFighter(Fighter):
-    def __init__(self):
-        super().__init__("Wizard", 50, 100, 50, 15)
-        self.add_attack("Fireball", 10, 5)
-        self.add_defense("Mana Shield", 5, 40)
 
 
 def create_guild(names: list[str]) -> list[Fighter]:

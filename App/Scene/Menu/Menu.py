@@ -59,14 +59,22 @@ class Menu(Scene):
                 if len(self.player_options) == 3:
                     raise EndOfScene()
             if r:
-                self.screen.queue(r)
+                for rect in r:
+                    self.screen.queue(rect)
 
 
     def erase(self) -> None:
-        #self.background.erase()
-        self.banner.erase()
-        self.guild_options.erase()
+        r = self.guild_options.erase()
+        self.screen.queue(r)
+        r = self.banner.erase()
+        self.screen.queue(r)
+        # no need to erase the bg, it will be reused in the next scene
+        # r = self.background.erase()
+        # self.screen.queue(r)
 
 
     def terminate(self) -> list[str]:
+        self.objects.pop() # guild_options out
+        self.objects.pop() # banner out
+        # self.objects.pop() # background out
         return self.player_options

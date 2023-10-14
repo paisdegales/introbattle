@@ -1,7 +1,10 @@
 from App.Object.Grid import Grid
 from App.Object.Object import BaseObject
 from App.Object.UserInterfaceImage import ArrowImage
+from pygame.rect import Rect
 from pygame.surface import Surface
+from collections.abc import Iterable
+
 
 class Selector(BaseObject):
     def __init__(self, name: str, surface: Surface, grid: Grid, displacement: tuple[int, int]):
@@ -12,7 +15,10 @@ class Selector(BaseObject):
         self.displacement = displacement
         self.last_action = 'l'
         self.tip = "midbottom" # controls the vertex of the selector which points to smth
-        self.select()
+        self.links: list[list[object]] = list()
+        for i in range(self.grid.number_lines):
+            self.links.append(list())
+        self.jump()
 
 
     def right(self):
@@ -43,14 +49,31 @@ class Selector(BaseObject):
         return self
 
 
-    def select(self, vertex: str = "topleft") -> list[int]:
+    def link(self, objects: Iterable) -> None:
+        """ Link each square of the grid to an object
+
+            If an object is linked to a square,
+            it's implied that the selector points to
+            both the square and the linked object"""
+
+        for i in range(self.grid.number_lines):
+            self.links[i].clear()
+
+
+        for index, obj in enumerate(objects):
+            i = index // self.grid.number_columns
+            self.links[i].append(obj)
+
+
+    def jump(self, vertex: str = "topleft") -> None:
         """ Moves the selector inside its grid after calls to 'right', 'left', 'up', 'down' were made
+            The selector 'jumps' to the position where it should be.
             
             Parameters:
                 vertex: the rectangle's vertex that should be pointed by this selector
 
-            Return: List
-                The coordinates that the selector now points to """
+            Return: object
+                The object referenced by the selector (or None, in case nothing's referenced) """
 
         rect = self.grid.coordinates[self.line][self.column]
         if rect is None:
@@ -74,7 +97,43 @@ class Selector(BaseObject):
         coordinates: tuple[int, int] = getattr(rect, vertex)
         self.move(self.tip, coordinates)
         self.shift(*self.displacement)
-        return list(coordinates)
+
+
+    def redraw_upon_movement(self, direction: str, vertex: str = "midtop") -> tuple[Rect]:
+        """ Wrapper method to move the selector one grid square and redraw it right away
+
+            Return: the (relative) areas that have changed on the surface where the selector is drawn """
+
+        if not self.drawn:
+            return (Rect(0, 0, 0, 0))
+
+        surface: Surface = self.surface
+        erased = self.erase()
+        if direction == "left":
+            self.left()
+        elif direction == "right":
+            self.right()
+        elif direction == "up":
+            self.up()
+        elif direction == "down":
+            self.down()
+        self.jump(vertex=vertex)
+        _, redrawn = self.draw(surface)
+        return erased, redrawn
+
+
+    def select(self) -> object:
+        """ Parameters:
+
+            Return: object
+                The object referenced by the selector (or None, in case nothing's referenced) """
+
+        obj = None
+        if len(self.links[self.line]) > self.column:
+            obj = self.links[self.line][self.column]
+
+        return obj
+
 
 
 class DefaultSelector(Selector):

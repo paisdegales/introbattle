@@ -122,6 +122,8 @@ class Grid:
 
 
     def get_positions(self, vertex: str) -> list[tuple[int, int]]:
+        """ Get a list of well-arranged coordinates inside this grid """
+
         positions = list()
         for i in range(self.number_lines):
             for j in range(self.number_columns):
