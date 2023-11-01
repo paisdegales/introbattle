@@ -6,6 +6,7 @@ from os import listdir
 
 
 SCREENSIZE = 1024, 768
+GAME_FPS = 60
 
 
 APP_FOLDER = "App"

@@ -37,7 +37,7 @@ class CharacterBand(SizedObject):
                 1. list[0] = the erased area
                 1. list[1] = the drawn area """
 
-        return tuple(self.selector.redraw_upon_movement(direction))
+        return list(self.selector.redraw_upon_movement(direction))
 
     
     def select(self) -> Fighter:

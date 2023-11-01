@@ -11,16 +11,6 @@ class Combat:
         raise NotImplementedError()
 
 
-    def act(self, attacker: Fighter, attack_name: str, defender: Fighter, defense_name: str | None = None) -> list[Rect]:
-        rects = list()
-        if defense_name is not None:
-            rects.extend(self.defend(defender, defense_name))
-        rects.extend(self.attack(attacker, defender, attack_name))
-        if defense_name is not None:
-            defender.resistance //= 2
-        return rects
-
-
     def attack(self, attacker: Fighter, target: Fighter, ability_name: str) -> list[Rect]:
         ability: AttackAbility = attacker.attacks[ability_name]
         rects: list[Rect] = list()

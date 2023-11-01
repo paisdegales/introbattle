@@ -70,10 +70,7 @@ class Selector(BaseObject):
             The selector 'jumps' to the position where it should be.
             
             Parameters:
-                vertex: the rectangle's vertex that should be pointed by this selector
-
-            Return: object
-                The object referenced by the selector (or None, in case nothing's referenced) """
+                vertex: the rectangle's vertex that should be pointed by this selector """
 
         rect = self.grid.coordinates[self.line][self.column]
         if rect is None:
@@ -99,13 +96,14 @@ class Selector(BaseObject):
         self.shift(*self.displacement)
 
 
-    def redraw_upon_movement(self, direction: str, vertex: str = "midtop") -> tuple[Rect]:
+    def redraw_upon_movement(self, direction: str, vertex: str = "midtop") -> tuple[Rect, Rect]:
         """ Wrapper method to move the selector one grid square and redraw it right away
 
             Return: the (relative) areas that have changed on the surface where the selector is drawn """
 
         if not self.drawn:
-            return (Rect(0, 0, 0, 0))
+            rect = Rect(0, 0, 0, 0)
+            return rect, rect.move(0, 0)
 
         surface: Surface = self.surface
         erased = self.erase()
@@ -128,11 +126,9 @@ class Selector(BaseObject):
             Return: object
                 The object referenced by the selector (or None, in case nothing's referenced) """
 
-        obj = None
         if len(self.links[self.line]) > self.column:
-            obj = self.links[self.line][self.column]
-
-        return obj
+            return self.links[self.line][self.column]
+        return None
 
 
 

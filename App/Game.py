@@ -2,7 +2,7 @@ from App.Screen import Screen
 from App.Scene.Scene import Scene, EndOfScene
 from App.Scene.Menu.Menu import Menu
 from App.Scene.Battle.Battle import Battle
-from App.Setup.Globals import ANIMATE
+from App.Setup.Globals import ANIMATE, GAME_FPS, SCREENSIZE
 from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, QUIT
 from pygame.time import Clock, set_timer
 from pygame.event import poll, set_blocked, set_allowed
@@ -11,16 +11,18 @@ from logging import warning
 
 
 class Game:
-    def __init__(self, display_resolution: tuple[int, int], fps: int = 30) -> None:
+    def __init__(self, display_resolution: tuple[int, int] = SCREENSIZE, fps: int = GAME_FPS) -> None:
         self.screen = Screen(display_resolution)
         self.scenes: list[Scene] = list()
         self.clock = Clock()
         self.fps = fps
 
+
     def load_scenes(self) -> None:
-        self.scenes.append(Menu(self.screen))
+        #self.scenes.append(Menu(self.screen))
         self.scenes.append(Battle(self.screen))
     
+
     def run(self) -> None:
         if len(self.scenes) == 0:
             warning("No game scenes available. The game won't start.")
@@ -35,13 +37,13 @@ class Game:
         # keys being pressed start generating KEYDOWN_PRESSED
         set_repeat(1000, int(1000/60))
 
+
         scene_output: list  = list()
-        #scene_output = ["Paladin", "Wizard", "Hunter"]
+        scene_output = ["Paladin", "Wizard", "Hunter"]
         for scene in self.scenes:
             # the output of the last scene serves as input to the next scene
             scene_input = scene_output
             scene.load_initial_frame(*scene_input)
-            #print(scene)
             scene_output.clear()
             while True:
                 self.clock.tick(self.fps)
@@ -50,7 +52,6 @@ class Game:
                     scene.check_event(event)
                 except EndOfScene as e:
                     info = e.args
-                    #print(info)
                     break
                 except Exception as e:
                     raise e

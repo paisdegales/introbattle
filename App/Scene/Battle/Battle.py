@@ -3,31 +3,22 @@ from App.Scene.Scene import Scene
 from App.Scene.Battle.Local.CharacterBand import HeroBand, EnemyBand
 from App.Scene.Battle.Local.Box import Box
 from App.Scene.Battle.Local.Combat import Combat
-from App.Setup.Globals import ANIMATE, GRAY, RED, SCREENSIZE, WHITE
-from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN, KEYUP, K_RETURN
+from App.Scene.Battle.Local.BattlePhase import BattlePhase
+from App.Setup.Globals import ANIMATE, SCREENSIZE 
+from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
 from pygame.event import Event
 from pygame.mouse import get_pos
-from enum import Enum
-
-
-class BattlePhase(Enum):
-    SELECTING_HERO = 0
-    SELECTING_ACTION = 1
-    SELECTING_ABILITY = 2
-    SELECTING_ENEMY = 3
-    BATTLE_TIME = 4
 
 
 class Battle(Scene):
     def __init__(self, screen: Screen):
         super().__init__(screen)
 
-        self.state: BattlePhase = BattlePhase.SELECTING_HERO
-        self.next_phase = True
         self.chosen_hero = None
         self.chosen_action = None
         self.chosen_ability = None
         self.chosen_target = None
+        self.turn_packer = list()
         self.combat = Combat()
 
 
@@ -64,111 +55,165 @@ class Battle(Scene):
                 x, y = get_pos()
                 print(f"X: {x}, Y: {y}")
                 return
-
-        if self.next_phase:
-            rects = list()
-            match self.state:
+        elif event.type == ANIMATE:
+            match self.box.state:
                 case BattlePhase.SELECTING_HERO:
-                    rects = self.box.next_state()
-                case BattlePhase.SELECTING_ACTION:
-                    rects = self.box.next_state(["Attack", "Defense", "Action 3", "Action 4"])
-                case BattlePhase.SELECTING_ABILITY:
-                    action = "attacks" if self.chosen_action == "Attack" else "defenses"
-                    d = getattr(self.chosen_hero, action)
-                    abilities = d.values()
-                    rects = self.box.next_state(abilities)
+                    pass
                 case BattlePhase.SELECTING_ENEMY:
-                    rects = self.box.next_state()
-                case _:
-                    raise Exception('Unknown battle state')
-            for rect in rects:
-                _, rect = self.box.refresh(rect)
-                self.screen.queue(rect)
-            self.next_phase = False
-            return 
+                    pass
+        elif event.type == KEYDOWN:
+            match self.box.state:
+                case BattlePhase.SELECTING_HERO:
+                    if event.key == K_z:
+                        choose_hero(self)
+                    elif event.key == K_UP:
+                        move_hero_indicator(self, "up")
+                    elif event.key == K_DOWN:
+                        move_hero_indicator(self, "down")
+                case BattlePhase.SELECTING_ACTION:
+                    if event.key == K_z:
+                        choose_action(self)
+                    elif event.key in [K_UP, K_DOWN, K_LEFT, K_RIGHT]:
+                        if event.key == K_UP:
+                            move_action_indicator(self, "up")
+                        elif event.key == K_DOWN:
+                            move_action_indicator(self, "down")
+                        elif event.key == K_LEFT:
+                            move_action_indicator(self, "left")
+                        else:
+                            move_action_indicator(self, "right")
+                case BattlePhase.SELECTING_ABILITY:
+                    if event.key == K_z:
+                        choose_ability(self)
+                    elif event.key in [K_UP, K_DOWN, K_LEFT, K_RIGHT]:
+                        if event.key == K_UP:
+                            move_ability_indicator(self, "up")
+                        elif event.key == K_DOWN:
+                            move_ability_indicator(self, "down")
+                        elif event.key == K_LEFT:
+                            move_ability_indicator(self, "left")
+                        else:
+                            move_ability_indicator(self, "right")
+                case BattlePhase.SELECTING_ENEMY:
+                    if event.key == K_z:
+                        choose_enemy(self)
+                    elif event.key in [K_UP, K_DOWN]:
+                        if event.key == K_UP:
+                            move_enemy_indicator(self, "up")
+                        else:
+                            move_enemy_indicator(self, "down")
+                case BattlePhase.BATTLE_TIME:
+                    pack = (self.chosen_hero, self.chosen_action, self.chosen_ability, self.chosen_enemy)
+                    self.turn_packer.append(pack)
 
-        # if the code gets pass the last if statement,
-        # then no phase-transition is made and we can 
-        # test for keyboard/mouse events related to the battle itself
-        match self.state:
-            case BattlePhase.SELECTING_HERO:
-                if event.type == KEYDOWN:
-                    if event.key == K_RETURN:
-                        self.chosen_hero = self.heros.select()
-                        self.state = BattlePhase.SELECTING_ACTION
-                        self.next_phase = True
-                    if event.key in [K_UP, K_DOWN]:
-                        rects: list[Rect] = list()
-                        if event.key == K_UP:
-                            rects = self.heros.go("up")
-                        else:
-                            rects = self.heros.go("down")
-                        for rect in rects:
-                            _, rect = self.heros.refresh(rect)
-                            self.screen.queue(rect)
-            case BattlePhase.SELECTING_ACTION:
-                if event.type == KEYDOWN:
-                    if event.key == K_RETURN:
-                        self.chosen_action = self.box.select()
-                        self.state = BattlePhase.SELECTING_ABILITY
-                        self.next_phase = True
-                    if event.key in [K_UP, K_DOWN, K_LEFT, K_RIGHT]:
-                        rects: list[Rect] = list()
-                        if event.key == K_UP:
-                            rects = self.box.go("up")
-                        elif event.key == K_DOWN:
-                            rects = self.box.go("down")
-                        elif event.key == K_LEFT:
-                            rects = self.box.go("left")
-                        else:
-                            rects = self.box.go("right")
-                        for rect in rects:
-                            _, rect = self.box.refresh(rect)
-                            self.screen.queue(rect)
-            case BattlePhase.SELECTING_ABILITY:
-                if event.type == KEYDOWN:
-                    if event.key == K_RETURN:
-                        self.chosen_ability = self.box.select()
-                        self.state = BattlePhase.SELECTING_ENEMY
-                        self.next_phase = True
-                    if event.key in [K_UP, K_DOWN, K_LEFT, K_RIGHT]:
-                        rects: list[Rect] = list()
-                        if event.key == K_UP:
-                            rects = self.box.go("up")
-                        elif event.key == K_DOWN:
-                            rects = self.box.go("down")
-                        elif event.key == K_LEFT:
-                            rects = self.box.go("left")
-                        else:
-                            rects = self.box.go("right")
-                        for rect in rects:
-                            _, rect = self.box.refresh(rect)
-                            self.screen.queue(rect)
-            case BattlePhase.SELECTING_ENEMY:
-                if event.type == KEYDOWN:
-                    if event.key == K_RETURN:
-                        self.chosen_enemy = self.enemies.select()
-                        self.state = BattlePhase.BATTLE_TIME
-                    if event.key in [K_UP, K_DOWN]:
-                        rects: list[Rect] = list()
-                        if event.key == K_UP:
-                            rects = self.enemies.go("up")
-                        else:
-                            rects = self.enemies.go("down")
-                        for rect in rects:
-                            _, rect = self.enemies.refresh(rect)
-                            self.screen.queue(rect)
-            case BattlePhase.BATTLE_TIME:
-                rects = self.combat.act(self.chosen_hero, self.chosen_ability, self.chosen_enemy, None)  
-                _, rect = self.heros.refresh(rects[-2])
-                self.screen.queue(rect)
-                _, rect = self.enemies.refresh(rects[-1])
-                self.screen.queue(rect)
-                self.state = BattlePhase.SELECTING_HERO
-                self.next_phase = True
-            case _:
-                raise Exception("Unmatched state in battle scene")
+                    if len(self.turn_packer) == 3:
+                        for pack in self.turn_packer:
+                            self.chosen_hero, self.chosen_action, self.chosen_ability, self.chosen_enemy = pack
+                            if self.chosen_enemy is not None:
+                                rects = self.combat.attack(self.chosen_hero, self.chosen_enemy, self.chosen_ability)  
+                                _, rect = self.heros.refresh(rects[0])
+                                self.screen.queue(rect)
+                                _, rect = self.enemies.refresh(rects[1])
+                                self.screen.queue(rect)
+                            else:
+                                rect = self.combat.defend(self.chosen_hero, self.chosen_ability)
+                                _, rect = self.heros.refresh(rect)
+                                self.screen.queue(rect)
+                        self.chosen_action = None
+                        self.chosen_ability = None
+                        self.chosen_hero = None
+                        self.chosen_enemy = None
+                        self.turn_packer.clear()
+                    rects = self.box.set_state(BattlePhase.SELECTING_HERO)
+                    for rect in rects:
+                        _, rect = self.box.refresh(rect)
+                        self.screen.queue(rect)
 
 
     def terminate(self) -> list[str]:
         raise NotImplementedError()
+
+
+
+
+def choose_hero(scene: Battle) -> None:
+    scene.chosen_hero = scene.heros.select()
+    chosen_heros = map(lambda x: x[0], scene.turn_packer)
+
+    if scene.chosen_hero in chosen_heros:
+        return
+
+    rects = scene.box.set_state(BattlePhase.SELECTING_ACTION, ["Attack", "Defend", "Use Item", "Pass"])
+    for rect in rects:
+        _, rect = scene.box.refresh(rect)
+        scene.screen.queue(rect)
+
+
+
+def move_hero_indicator(scene: Battle, direction: str) -> None:
+    rects = scene.heros.go(direction)
+    for rect in rects:
+        _, rect = scene.heros.refresh(rect)
+        scene.screen.queue(rect)
+
+
+
+def choose_action(scene: Battle) -> None:
+    if scene.chosen_hero is None:
+        return
+
+    scene.chosen_action = scene.box.select()
+
+    if scene.chosen_action == "Attack":
+        abilities = scene.chosen_hero.attacks.values()
+    else:
+        abilities = scene.chosen_hero.defenses.values()
+
+    rects = scene.box.set_state(BattlePhase.SELECTING_ABILITY, abilities)
+    for rect in rects:
+        _, rect = scene.box.refresh(rect)
+        scene.screen.queue(rect)
+
+
+
+def move_action_indicator(scene: Battle, direction: str) -> None:
+    rects = scene.box.go(direction)
+    for rect in rects:
+        _, rect = scene.box.refresh(rect)
+        scene.screen.queue(rect)
+
+
+
+def choose_ability(scene: Battle) -> None:
+    scene.chosen_ability = scene.box.select()
+    rects = list()
+    if scene.chosen_action == "Attack":
+        rects = scene.box.set_state(BattlePhase.SELECTING_ENEMY)
+    elif scene.chosen_action == "Defend":
+        scene.chosen_enemy = None
+        rects = scene.box.set_state(BattlePhase.BATTLE_TIME)
+    for rect in rects:
+        _, rect = scene.box.refresh(rect)
+        scene.screen.queue(rect)
+
+
+
+def move_ability_indicator(scene: Battle, direction: str) -> None:
+    rects = scene.box.go(direction)
+    for rect in rects:
+        _, rect = scene.box.refresh(rect)
+        scene.screen.queue(rect)
+
+
+
+def choose_enemy(scene: Battle) -> None:
+    scene.chosen_enemy = scene.enemies.select()
+    scene.box.set_state(BattlePhase.BATTLE_TIME)
+
+
+
+def move_enemy_indicator(scene: Battle, direction: str) -> None:
+    rects = scene.enemies.go(direction)
+    for rect in rects:
+        _, rect = scene.enemies.refresh(rect)
+        scene.screen.queue(rect)

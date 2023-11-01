@@ -5,20 +5,20 @@ from App.Object.Ability import Ability
 from App.Object.Grid import Grid
 from App.Object.Object import SizedObject, BaseObject
 from App.Object.Selector import DefaultSelector
-from App.Setup.Globals import GRAY, LIGHT_GRAY, WHITE
+from App.Setup.Globals import GRAY, WHITE
+from App.Scene.Battle.Local.BattlePhase import BattlePhase
 
 
 class Box(SizedObject):
     def __init__(self):
         super().__init__("Player box", (450, 250))
-        self.clear()
 
         # configuring how all texts of this class will look like
         self.pen = Pen(FontFamily("OpenSans"), "Regular", 24, WHITE)
 
         # creating the grid where all texts will get positioned
         self.grid = Grid(2, 2, (200, 100))
-        self.grid.move("topleft", (50, 50))
+        self.grid.move("topleft", (75, 25))
 
         self.selector = DefaultSelector(self.grid, (-10, 0))
         # setting where the tip of the selector is (it will get modified after
@@ -29,19 +29,23 @@ class Box(SizedObject):
         # initially positioning the selector
         self.selector.jump("midleft")
 
-        # 0: Choosing a hero
-        # 1: Choosing an action
-        # 2: Choosing an ability
-        # 3: Choosing a target
-        self.state_counter = 0
+        # cleaning the box, so that it displays nothing more than its bg
+        self.clear()
+
+        self.set_state(BattlePhase.SELECTING_HERO)
 
 
     def clear(self) -> Rect:
+        if self.selector.drawn:
+            self.selector.erase()
+            self.selector.line = 0
+            self.selector.column = 0
+            self.selector.jump("midleft")
         return self.image.fill(GRAY)
 
 
     def choose_hero(self) -> list[Rect]:
-        """ This is the first intended state of this object (self.state_counter = 0)
+        """ This is the first intended state of this object (self.state = 0)
 
             In this state, the box remains still until the player chooses a
             hero. At this point, the box only has a central text, indicating
@@ -85,7 +89,7 @@ class Box(SizedObject):
 
 
     def choose_action(self, actions: list[str]) -> list[Rect]:
-        """ This is the second intended state of this object (self.state_counter = 1)
+        """ This is the second intended state of this object (self.state = 1)
 
             In this state, the box displays the actions the player can perform
             with the chosen hero.
@@ -123,17 +127,6 @@ class Box(SizedObject):
             _, r = obj.draw(self.image)
             rects.append(r)
 
-        # this is not necessarily right?
-        # logically, the selector would never be drawn on the screen when
-        # 'choose_action' gets called, but since i messed up and didn't erase
-        # it correctly in 'choose_heros', this if statement is needed 
-        if self.selector.drawn:
-            r = self.selector.erase()
-            rects.append(r)
-            self.selector.line = 0
-            self.selector.column = 0
-            self.selector.jump("midleft")
-
         _, r = self.selector.draw(self.image)
         rects.append(r)
 
@@ -141,7 +134,7 @@ class Box(SizedObject):
     
 
     def choose_ability(self, abilities: list[Ability]) -> list[Rect]:
-        """ This is the third intended state of this object (self.state_counter = 2)
+        """ This is the third intended state of this object (self.state = 2)
 
             In this state, the box displays all the available abilities bounded
             to the previously chosen action.
@@ -167,28 +160,16 @@ class Box(SizedObject):
 
         # the selector is set to (symbolicly) point to all the available ability names
         # shown in the screen
-        abilities = [ability.name for ability in abilities]
-        self.selector.link(abilities)
+        ability_names: list[str] = [ability.name for ability in abilities]
+        self.selector.link(ability_names)
 
         # positioning all ability names in the screen
         positions = self.grid.get_positions("midleft")
-        for text, position in zip(abilities, positions):
+        for text, position in zip(ability_names, positions):
             obj: BaseObject = self.pen.write(text)
             obj.move("midleft", position)
             _, r = obj.draw(self.image)
             rects.append(r)
-
-        # even though the 'clear' method was called in the beginning of this
-        # method, the selector is still drawn at the screen! WHAT?
-        # well, that's because an object only gets effectively erased if its
-        # 'erase' method gets called (its 'drawn' attribute is set to False').
-        # For this reason, this if statement is necessary.
-        if self.selector.drawn:
-            r = self.selector.erase()
-            rects.append(r)
-            self.selector.line = 0
-            self.selector.column = 0
-            self.selector.jump("midleft")
 
         _, r = self.selector.draw(self.image)
         rects.append(r)
@@ -198,7 +179,7 @@ class Box(SizedObject):
 
     def choose_target(self) -> list[Rect]:
         """ This is the forth and (usually) the final intended state of the box
-            (self.state_counter = 3)
+            (self.state = 3)
 
             In this state, the box displays a text while it waits for the
             player to choose a target/enemy to cast its ability in case it's
@@ -232,8 +213,8 @@ class Box(SizedObject):
         return rects
 
 
-    def next_state(self, *args) -> list[Rect]:
-        """ Easily transition between the four stages the box can under go during a turn
+    def set_state(self, state_id: BattlePhase, *args) -> list[Rect]:
+        """ Hard set the box to a certain state
 
             1st stage: waiting for the player to choose a hero
             2nd stage: waiting for the player to select what kind of action he wants to perform (attack, defend, etc)
@@ -241,33 +222,62 @@ class Box(SizedObject):
             4th stage: waiting for the player to choose a target (if possible)
 
             Return: list[Rect]
-                * a list of all the areas that have changed in self's surface in order to go to the next state """
+                * a list of all the areas that have changed in self's surface in order to go to the desired state """
 
         rects: list[Rect] = list()
-        if self.state_counter == 0:
-            rects = self.choose_hero()
-        elif self.state_counter == 1:
-            rects = self.choose_action(["Attack", "Defense", "Action 3", "Action 4"])
-        elif self.state_counter == 2:
-            rects = self.choose_ability(args[0])
-        elif self.state_counter == 3:
-            rects = self.choose_target()
-        self.state_counter += 1
-        self.state_counter %= 4
+        match state_id:
+            case BattlePhase.SELECTING_HERO:
+                rects = self.choose_hero()
+                self.state = BattlePhase.SELECTING_HERO
+            case BattlePhase.SELECTING_ACTION:
+                rects = self.choose_action(args[0])
+                self.state = BattlePhase.SELECTING_ACTION
+            case BattlePhase.SELECTING_ABILITY:
+                rects = self.choose_ability(args[0])
+                self.state = BattlePhase.SELECTING_ABILITY
+            case BattlePhase.SELECTING_ENEMY:
+                rects = self.choose_target()
+                self.state = BattlePhase.SELECTING_ENEMY
+            case BattlePhase.BATTLE_TIME:
+                self.state = BattlePhase.BATTLE_TIME
+            case _:
+                raise Exception("Box: Unknown state")
+
+        return rects
+
+
+    def undo_state(self, *args) -> list[Rect]:
+        rects: list[Rect] = list()
+        match self.state:
+            case BattlePhase.SELECTING_HERO:
+                rects = self.choose_target()
+                self.state = BattlePhase.SELECTING_ENEMY
+            case BattlePhase.SELECTING_ACTION:
+                rects = self.choose_hero()
+                self.state = BattlePhase.SELECTING_HERO
+            case BattlePhase.SELECTING_ABILITY:
+                rects = self.choose_action(args[0])
+                self.state = BattlePhase.SELECTING_ACTION
+            case BattlePhase.SELECTING_ENEMY:
+                rects = self.choose_ability(args[0])
+                self.state = BattlePhase.SELECTING_ABILITY
+            case BattlePhase.BATTLE_TIME:
+                self.state = BattlePhase.BATTLE_TIME
+            case _:
+                raise Exception("Box: Unknown state")
         return rects
 
 
     def go(self, direction: str) -> list[Rect]:
-        return tuple(self.selector.redraw_upon_movement(direction, "midleft"))
+        return list(self.selector.redraw_upon_movement(direction, "midleft"))
 
 
     def select(self) -> str:
         if not self.selector.drawn:
             raise Exception('Nothing can be selected because the selector is not drawn')
 
-        if self.state_counter == 1:
-            pass
-        elif self.state_counter == 2:
-            pass
+        selection = self.selector.select()
+        if not isinstance(selection, str):
+            raise Exception("Can't select something other than a string")
 
-        return self.selector.select()
+        return  selection
