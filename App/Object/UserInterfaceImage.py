@@ -83,8 +83,11 @@ class FillingBar(AssembledUserInterfaceImage):
             Return: Rect
                 the area of the filling bar's surface that has changed """
 
-        if (percent > 1) or (percent < 0):
-            raise Exception("'update' method of FillingBar got something other than a percentage")
+        if percent > 1:
+            raise Exception("'update' method of FillingBar got something other than a percentage lesser than 1")
+
+        if percent < 0:
+            percent = 0
 
         self.percent = percent
         width = int(self.rect.w * (1 - percent))

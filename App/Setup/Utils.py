@@ -19,4 +19,4 @@ screen_logger = new_logger("Screen")
 menu_scene_logger = new_logger("MenuScene")
 menu_scene_guildoptions_logger = new_logger("GuildOptions")
 menu_scene_heroportrait_logger = new_logger("HeroPortrait")
-
+battle_fight_logger = new_logger("Fight")

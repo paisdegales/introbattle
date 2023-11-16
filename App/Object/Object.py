@@ -114,8 +114,15 @@ class BaseObject:
         if not self.drawn:
             raise Exception(f"{self.name} can't be refreshed if not drawn")
 
+        if self.hide:
+            bak = self.image.copy()
+            bak.set_colorkey(Color(0, 0, 0))
+            bak.blit(self.image, (0, 0))
+            self.image.blit(self.beneath, (0, 0))
+            self.image.blit(bak, (0, 0))
+
         beneath = Surface(area.size)
-        beneath.blit(self.image, area, area)
+        beneath.blit(self.image, (0,0), area)
         refreshed_area = self.surface.blit(self.image, self.rect.move(*area.topleft), area)
 
         return beneath, refreshed_area

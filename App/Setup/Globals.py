@@ -4,7 +4,6 @@ from os.path import join
 from os import listdir
 
 
-
 SCREENSIZE = 1024, 768
 GAME_FPS = 60
 

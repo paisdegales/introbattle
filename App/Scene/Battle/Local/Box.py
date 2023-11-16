@@ -22,7 +22,7 @@ class Box(SizedObject):
 
         self.selector = DefaultSelector(self.grid, (-10, 0))
         # setting where the tip of the selector is (it will get modified after
-        # rotating it next)
+        # rotating it next
         self.selector.tip = "midright"
         # setting the selector to face east
         self.selector.rotate(90)

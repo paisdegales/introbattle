@@ -1,14 +1,14 @@
-from pygame.rect import Rect
 from App.Object.Object import BaseObject, SizedObject
 from App.Object.CharacterImage import create_character_image
-from App.Object.UserInterfaceImage import HealthBar
-from App.Object.UserInterfaceImage import ManaBar
-from App.Object.UserInterfaceImage import StaminaBar
+from App.Object.UserInterfaceImage import HealthBar, ManaBar, StaminaBar
 from App.Object.Ability import AttackAbility, DefenseAbility
+from App.Setup.Globals import RED
+from pygame.rect import Rect
+from pygame.draw import line
 
 
 class Fighter(SizedObject):
-    def __init__(self, character_name: str, max_hp: int, max_mp: int, max_stamina: int, resistance: int):
+    def __init__(self, character_name: str, max_hp: int, max_mp: int, max_stamina: int, resistance: int, speed: int):
         self.character = create_character_image(character_name)
         if self.character is None:
             raise Exception(f"No character named {character_name} was found!")
@@ -23,6 +23,7 @@ class Fighter(SizedObject):
 
         # why +10? Answer: to ensure that this object will be able to vibrate without getting cropped by its surface's size
         super().__init__(character_name, (width+10, height+10))
+        self.hide = True
 
         self.hpbar.move("midtop", (int(width/2), 0))
         self.mpbar.move("midtop", self.hpbar.rect.midbottom)
@@ -36,17 +37,21 @@ class Fighter(SizedObject):
         self.max_mp = max_mp
         self.max_stamina = max_stamina
         self.resistance = resistance
+        self.speed = speed
         self.current_hp = max_hp
         self.current_mp = max_mp
         self.current_stamina = max_stamina
         self.attacks: dict[str, AttackAbility] = dict()
         self.defenses: dict[str, DefenseAbility] = dict()
+        self.alive = True
 
 
     def take_damage(self, damage: int) -> Rect:
         """ returns a rectangle (relative coordinates and size) of the area that has changed """
 
         self.current_hp -= damage
+        if self.current_hp <= 0:
+            self.alive = False
         percent = self.current_hp / self.max_hp
         area = self.hpbar.update(percent)
         self.hpbar.erase()
@@ -90,9 +95,22 @@ class Fighter(SizedObject):
         self.defenses[name] = DefenseAbility(name, value, cost)
 
 
+    def die(self) -> Rect:
+        self.alive = False
+        rect = line(self.image, RED, (0, 0), self.rect.size, 4)
+        rect = line(self.image, RED, (self.rect.size[0], 0), (0, self.rect.size[1]), 4)
+        _, rect = self.refresh(rect)
+        return rect
+
+    @property
+    def dead(self) -> bool:
+        return not self.alive
+
+
+
 class HunterFighter(Fighter):
     def __init__(self):
-        super().__init__("Hunter", 30, 15, 20, 20)
+        super().__init__("Hunter", 30, 15, 20, 20, 4)
         self.add_attack("Quickshot", 20, 5)
         self.add_attack("Longshot", 20, 5)
         self.add_attack("Stab", 20, 5)
@@ -105,7 +123,7 @@ class HunterFighter(Fighter):
 
 class PaladinFighter(Fighter):
     def __init__(self):
-        super().__init__("Paladin", 40, 10, 25, 30)
+        super().__init__("Paladin", 40, 10, 25, 30, 1)
         self.add_attack("Charge", 15, 2)
         self.add_attack("Holysword", 15, 2)
         self.add_attack("Impale", 15, 2)
@@ -118,7 +136,7 @@ class PaladinFighter(Fighter):
 
 class PriestFighter(Fighter):
     def __init__(self):
-        super().__init__("Priest", 25, 40, 10, 10)
+        super().__init__("Priest", 25, 40, 10, 10, 2)
         self.add_attack("Curse", 10, 5)
         self.add_attack("Codemn", 10, 5)
         self.add_attack("Repent", 10, 5)
@@ -131,7 +149,7 @@ class PriestFighter(Fighter):
 
 class RogueFighter(Fighter):
     def __init__(self):
-        super().__init__("Rogue", 25, 20, 30, 10)
+        super().__init__("Rogue", 25, 20, 30, 10, 5)
         self.add_attack("Stab", 30, 4)
         self.add_attack("Pickpocket", 30, 4)
         self.add_attack("Strike", 30, 4)
@@ -144,7 +162,7 @@ class RogueFighter(Fighter):
 
 class WizardFighter(Fighter):
     def __init__(self):
-        super().__init__("Wizard", 30, 20, 25, 15)
+        super().__init__("Wizard", 30, 20, 25, 15, 3)
         self.add_attack("Fireball", 10, 5)
         self.add_attack("Lightining", 10, 5)
         self.add_attack("Icecold", 10, 5)
@@ -157,7 +175,7 @@ class WizardFighter(Fighter):
 
 class MageFighter(Fighter):
     def __init__(self):
-        super().__init__("Mage", 50, 100, 50, 15)
+        super().__init__("Mage", 50, 100, 50, 15, 3)
         self.add_attack("Avadakedabra", 35, 10)
         self.add_attack("Expelliarmus", 35, 10)
         self.add_attack("Momentum", 35, 10)
@@ -170,7 +188,7 @@ class MageFighter(Fighter):
 
 class SkullFighter(Fighter):
     def __init__(self):
-        super().__init__("Skull", 100, 10, 10, 30)
+        super().__init__("Skull", 100, 10, 10, 30, 1)
         self.add_attack("Backbone", 5, 5)
         self.add_attack("Bonebone", 5, 5)
         self.add_attack("Boneattack", 5, 5)

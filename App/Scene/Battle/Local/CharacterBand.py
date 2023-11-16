@@ -3,7 +3,6 @@ from App.Object.Fighter import Fighter, create_guild
 from App.Object.Grid import Grid
 from App.Object.Object import SizedObject
 from App.Object.Selector import DefaultSelector
-from App.Setup.Globals import RED
 
 
 class CharacterBand(SizedObject):
@@ -12,11 +11,11 @@ class CharacterBand(SizedObject):
         self.hide = True
         self.grid = grid
         self.fighters = create_guild(characters)
-        for fighter, position in zip(self.fighters, grid.get_positions("midtop")):
-            fighter.move("midtop", position)
-            fighter.draw(self.image)
         self.selector = DefaultSelector(self.grid, (0, 0))
         self.selector.jump("midtop")
+        for fighter, position in zip(self.fighters, self.grid.get_positions("midtop")):
+            fighter.move("midtop", position)
+            fighter.draw(self.image)
         self.selector.draw(self.image)
         self.selector.link(self.fighters)
 

@@ -3,7 +3,7 @@ from pygame.rect import Rect
 
 class Grid:
     """ This class creates a list of pygame.rect.Rect objects and
-        positions each one in a Grid fashion way
+        positions them in a Grid fashion way
 
         The coordinates of each rectangle can be retrieved by
         specifying the desired vertex of interest """
@@ -42,7 +42,7 @@ class Grid:
             3. the spacing in between lines and columns
 
             This method is automatically called by '__init__'
-            and 'move' methods and should not be explictly used """
+            and 'move' methods and should not be explicitly used """
 
         for i in range(self.number_lines):
             for j in range(self.number_columns):
@@ -90,34 +90,29 @@ class Grid:
             if both line_index and column_index are not None, only 1 element
             is shifted """
 
-        if line_index is None and column_index is None:
+        if line_index is not None and column_index is not None:
+            rect = self.coordinates[line_index][column_index]
+            if rect is not None:
+                rect.move_ip(shift_amount)
+        elif line_index is not None and column_index is None:
+            for index in range(self.number_columns):
+                rect = self.coordinates[line_index][index]
+                if rect is None:
+                    continue
+                rect.move_ip(shift_amount)
+        elif column_index is not None and line_index is None:
+            for l in range(self.number_lines):
+                rect = self.coordinates[l][column_index] 
+                if rect is not None:
+                    rect.move_ip(shift_amount)
+        else:
             for i in range(self.number_lines):
                 for j in range(self.number_columns):
                     rect = self.coordinates[i][j]
                     if rect is None:
                         continue
                     rect.move_ip(shift_amount)
-            self.update_size()
-            return
 
-
-        if line_index is not None:
-            for index in range(self.number_columns):
-                rect = self.coordinates[line_index][index]
-                if rect is None:
-                    continue
-                rect.move_ip(shift_amount)
-
-
-        if column_index is None:
-            self.update_size()
-            return
-
-
-        for l in range(self.number_lines):
-            rect = self.coordinates[l][column_index] 
-            if rect is not None:
-                rect.move_ip(shift_amount)
         self.update_size()
 
 

@@ -7,10 +7,6 @@ class Combat:
         pass
 
 
-    def round(self):
-        raise NotImplementedError()
-
-
     def attack(self, attacker: Fighter, target: Fighter, ability_name: str) -> list[Rect]:
         ability: AttackAbility = attacker.attacks[ability_name]
         rects: list[Rect] = list()

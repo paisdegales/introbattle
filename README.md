@@ -79,21 +79,17 @@ App/
 
 
 # PLANO DE AÇÃO AGORA
-0. Implementar tupla que guarda as escolhas feitas pelo jogador durante todas
-   as fases que a box passa. Essa tupla pode ser implementada usando um dict e
-deve estar presente na classe box. Criar entao um metodo que retorna essa
-tupla. Ao todo, a classe box deve ser capaz de armazenar ate 3 tuplas desse tipo.
-1. Implementar exceções (talvez na classe Combat ou na propria BattleScene) que
-   informem quando um personagem 'morre' e quando uma Band 'morre'
-   completamente
-2. Tentar corrigir o problema do black spot inicial do seletor com os objetos
-   da classe CharacterBand
-3. Padronizar a cena, de modo que seus objetos e ela propria utilize variáveis
+1. Padronizar a cena, de modo que seus objetos e ela propria utilize variáveis
    definidas no arquivo 'Globals.py' ou 'Locals.py'
-4. Implemetar o botao que permite voltar para a escolha anterior na batalha
-5. Fazer com que a velocidade dos herois influenciem na ordem com que as ações
+2. Implemetar o botao que permite voltar para a escolha anterior na batalha
    são tomadas
-6. Dar um jeito dos inimigos tambem atacarem (nao eh tao dificil quanto parece)
+3. Dar um jeito de regenerar a mana dos herois/inimigos de vez em quando
+4. Criar caixa de status dos personagens
+5. Criar terceira e ultima cena do jogo: banner com "You win!" em
+   verde ou "You lose!" em vermelho, com um moving character
+controlado pelas setas do teclado
+6. Melhorar arquivo de log, com mais coverage sobre a cena de Batalha
+7. Balancear os bonecos
 
 
 # BACKLOG
@@ -107,11 +103,7 @@ tupla. Ao todo, a classe box deve ser capaz de armazenar ate 3 tuplas desse tipo
   funcoes pelo 'pydoc' e replicar)
 * talvez usar mais o modulo 'doctest', que é muito util alias
 * talvez melhorar as anotacoes que foram usadas usando o modulo 'typing'
-* criar arquivo de log usando o modulo 'logging'
 * Talvez ir destruindo alguns objetos com `del` para poupar ram
-* Criar terceira e ultima cena do jogo: banner com "You win!" em verde ou "You
-  lose!" em vermelho, com um moving character controlado pelas setas do
-  teclado
 
 
 # ANOTAÇÕES
@@ -144,3 +136,9 @@ Surface do pygame. Essa nova classe poderia ser usada para identificar com
 facilidade que superficie um objeto eh desenhado sobre. Alem disso, uma
 subclasse dessa classe poderia representar a superficie da tela, que é uma
 superficie 'especial' no meu ponto de vista.
+
+A classe Grid poderia ser uma classe que gera coordenadas em tempo real,
+em vez de armazenar um dicionario com todos os grid que possui e gerar
+as coordenadas baseando-se nesse dicionario
+* Essa ideia é impraticável, porque ficaria dificil gerar coordenadas de um 
+grid nao regular (com algumas linhas e colunas shiftadas, por exemplo)

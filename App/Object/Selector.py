@@ -4,6 +4,7 @@ from App.Object.UserInterfaceImage import ArrowImage
 from pygame.rect import Rect
 from pygame.surface import Surface
 from collections.abc import Iterable
+from typing import Any
 
 
 class Selector(BaseObject):
@@ -120,7 +121,7 @@ class Selector(BaseObject):
         return erased, redrawn
 
 
-    def select(self) -> object:
+    def select(self) -> Any:
         """ Parameters:
 
             Return: object

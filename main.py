@@ -1,5 +1,4 @@
 from App.Game import Game
-from App.Object.Grid import Grid
 
 def main() -> None:
     introbattle = Game()
