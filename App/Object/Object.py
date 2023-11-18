@@ -35,6 +35,10 @@ class BaseObject:
 
     def shift(self, dx: int, dy: int) -> None:
         x, y = self.rect.topleft
+        if (x + dx) < 0:
+            return
+        if (y + dy) < 0:
+            return
         self.rect.topleft = x + dx, y + dy
 
 
@@ -205,10 +209,11 @@ class BaseObject:
 
 
     def make_contour(self, color: Color, thickness: int) -> None:
-        line(self.image, color, self.rect.bottomleft, self.rect.topleft, width=thickness)
-        line(self.image, color, self.rect.topleft, self.rect.topright, width=thickness)
-        line(self.image, color, self.rect.topright, self.rect.bottomright, width=thickness+2)
-        line(self.image, color, self.rect.bottomright, self.rect.bottomleft, width=thickness+2)
+        w, h = self.image.get_size()
+        line(self.image, color, (0, h), (0, 0), width=thickness)
+        line(self.image, color, (0, 0), (w, 0), width=thickness)
+        line(self.image, color, (w, 0), (w, h), width=thickness+2)
+        line(self.image, color, (w, h), (0, h), width=thickness+2)
 
 
 

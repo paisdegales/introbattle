@@ -2,8 +2,8 @@
 
 This is a showcase of a game built using pygame
 
-This project is originally part of Introcomp, a programming course of the
-Federal University of Espirito Santo (UFES)
+This project is originally part of Introcomp, a programming course of
+[UFES](https://internacional.ufes.br/en/institution) for high school students of public schools
 
 You can found more about Introcomp on:
 * instagram: [@introcompufes](https://www.instagram.com/introcompufes/?hl=en)
@@ -38,6 +38,25 @@ python main.py
 ```
 
 And voila! now you can play it! hooray!
+
+---
+
+## Controls
+
+### Menu
+
+1. Press `z` to choose a character
+> Choose 3 characters
+
+### Battle
+
+1. Press `z` to select a hero/menu entries/a target
+2. Press `x` to go back one `z` press
+
+### End
+
+1. Use the up, down, right and left arrows to move the character
+
 
 ---
 
@@ -79,31 +98,24 @@ App/
 
 
 # PLANO DE AÇÃO AGORA
-1. Padronizar a cena, de modo que seus objetos e ela propria utilize variáveis
-   definidas no arquivo 'Globals.py' ou 'Locals.py'
-2. Implemetar o botao que permite voltar para a escolha anterior na batalha
-   são tomadas
-3. Dar um jeito de regenerar a mana dos herois/inimigos de vez em quando
-4. Criar caixa de status dos personagens
-5. Criar terceira e ultima cena do jogo: banner com "You win!" em
-   verde ou "You lose!" em vermelho, com um moving character
-controlado pelas setas do teclado
-6. Melhorar arquivo de log, com mais coverage sobre a cena de Batalha
-7. Balancear os bonecos
+1. Criar caixa de status dos personagens
+2. Melhorar arquivo de log, com mais coverage sobre a cena de Batalha
+3. Balancear os bonecos
+4. Melhorar exibição do nomes das habilidades (add dano e mana da habilidade)
 
 
 # BACKLOG
 
-* reforçar uso de variaveis apenas definidas no arquivo Globals.py
 * talvez implementar algo usando a biblioteca 'argparse'
 * talvez investigar como está o uso de memoria ram usando a biblioteca
   'tracemalloc'
+    * Talvez ir destruindo alguns objetos com `del` para poupar ram
 * talvez usar json em vez de constantes soltas nos arquivos de config/setup
-* melhorar a documentação do codigo (tentar aprender como sao documentadas
-  funcoes pelo 'pydoc' e replicar)
-* talvez usar mais o modulo 'doctest', que é muito util alias
-* talvez melhorar as anotacoes que foram usadas usando o modulo 'typing'
-* Talvez ir destruindo alguns objetos com `del` para poupar ram
+* Adicionar musica de fundo
+* Cobrir algumas partes do codigo aqui no readme: design por cenas, como se
+desenha/atualiza a screen nesse projeto, a intencao de nao usar sprites (e como
+eu me arrependi por isso kk) e coisas que possivelmente ficarao faltando, falar
+que o design do grid foi dificil
 
 
 # ANOTAÇÕES

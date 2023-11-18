@@ -1,12 +1,15 @@
-from pygame.rect import Rect
 from App.Font.Family import FontFamily
 from App.Font.Pen import Pen
 from App.Object.Ability import Ability
 from App.Object.Grid import Grid
 from App.Object.Object import SizedObject, BaseObject
 from App.Object.Selector import DefaultSelector
-from App.Setup.Globals import GRAY, WHITE
 from App.Scene.Battle.Local.BattlePhase import BattlePhase
+from App.Scene.Battle.Local.Locals import BOX_FONTFAMILY, \
+    BOX_BGCOLOR, BOX_FONTSIZE, BOX_FONTCOLOR, BOX_GRID_POSITION, BOX_CHOOSE_ENEMY_TEXT, BOX_CHOOSE_HERO_TEXT
+from pygame.rect import Rect
+
+from App.Setup.Globals import GRAY, WHITE
 
 
 class Box(SizedObject):
@@ -14,11 +17,11 @@ class Box(SizedObject):
         super().__init__("Player box", (450, 250))
 
         # configuring how all texts of this class will look like
-        self.pen = Pen(FontFamily("OpenSans"), "Regular", 24, WHITE)
+        self.pen = Pen(FontFamily(BOX_FONTFAMILY), "Regular", BOX_FONTSIZE, BOX_FONTCOLOR)
 
         # creating the grid where all texts will get positioned
         self.grid = Grid(2, 2, (200, 100))
-        self.grid.move("topleft", (75, 25))
+        self.grid.move(*BOX_GRID_POSITION)
 
         self.selector = DefaultSelector(self.grid, (-10, 0))
         # setting where the tip of the selector is (it will get modified after
@@ -41,7 +44,9 @@ class Box(SizedObject):
             self.selector.line = 0
             self.selector.column = 0
             self.selector.jump("midleft")
-        return self.image.fill(GRAY)
+        rect = self.image.fill(BOX_BGCOLOR)
+        self.make_contour(WHITE, 5)
+        return rect
 
 
     def choose_hero(self) -> list[Rect]:
@@ -72,7 +77,7 @@ class Box(SizedObject):
         self.selector.link([None, None, None, None])
 
         # the text is created 
-        text: BaseObject = self.pen.write("Choose a hero")
+        text: BaseObject = self.pen.write(BOX_CHOOSE_HERO_TEXT)
         # centering the text inside its parent is kinda problematic:
         #   its not possible to use 'self.rect.center' to center the text
         #   inside the box (text's parent), because that attribute stores
@@ -165,7 +170,8 @@ class Box(SizedObject):
 
         # positioning all ability names in the screen
         positions = self.grid.get_positions("midleft")
-        for text, position in zip(ability_names, positions):
+        for ability, position in zip(abilities, positions):
+            text = ability.name
             obj: BaseObject = self.pen.write(text)
             obj.move("midleft", position)
             _, r = obj.draw(self.image)
@@ -204,7 +210,7 @@ class Box(SizedObject):
         # on the screen. hence, it points to nothing
         self.selector.link([None, None, None, None])
 
-        text = self.pen.write("Choose a target")
+        text = self.pen.write(BOX_CHOOSE_ENEMY_TEXT)
         text.move("center", (self.rect.w//2, self.rect.h//2))
 
         _, r = text.draw(self.image)

@@ -1,10 +1,5 @@
 from App.Setup.Globals import BLACK, SCREENSIZE, WHITE
 
-# the number of NOEVENTs this scene should receive
-# until its objects are vibrated
-# obs: NOEVENTs are generated whenever the player is doing nothing
-VIBRATION_SPEED = 20
-
 BANNER_POSITION = "center", (515, 130)
 BANNER_FONTFAMILY = "OpenSans"
 BANNER_SIZE = 280, 80

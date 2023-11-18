@@ -1,6 +1,6 @@
 from App.Object.Object import BaseObject, SizedObject
 from App.Object.CharacterImage import create_character_image
-from App.Object.UserInterfaceImage import HealthBar, ManaBar, StaminaBar
+from App.Object.UserInterfaceImage import FillingBar, HealthBar, ManaBar, StaminaBar
 from App.Object.Ability import AttackAbility, DefenseAbility
 from App.Setup.Globals import RED
 from pygame.rect import Rect
@@ -38,6 +38,9 @@ class Fighter(SizedObject):
         self.max_stamina = max_stamina
         self.resistance = resistance
         self.speed = speed
+        self.hp_regen = max_hp // 10
+        self.mp_regen = max_mp // 5
+        self.stamina_regen = max_stamina // 4
         self.current_hp = max_hp
         self.current_mp = max_mp
         self.current_stamina = max_stamina
@@ -95,12 +98,47 @@ class Fighter(SizedObject):
         self.defenses[name] = DefenseAbility(name, value, cost)
 
 
+    def regen_attribute(self, attribute: str) -> Rect:
+        """ regenerates the hp/mp/stamina bar by some amount
+
+            Parameters: attribute: str ('hp', 'mp' or 'stamina')
+
+            Return: * A rectangle which represents the relative area of the fighter's surface that has changed
+
+            Exceptions:
+                1. If an attribute other than 'hp', 'mp' or 'stamina' is passed, the base Exception class is generated 
+                2. If 'self.current_attribute' or 'self.regen_attribute' or 'self.max_attribute' or 'self.attributebar' have mismatching types with what's expected, then the base Exception class is generated """
+
+        if attribute not in ('mp', 'hp', 'stamina'):
+            raise Exception('regen_attribute: invalid attribute')
+
+        current = getattr(self, 'current_' + attribute)
+        regen = getattr(self, attribute + '_regen')
+        max = getattr(self, 'max_' + attribute)
+        bar = getattr(self, attribute + 'bar')
+
+        if  not isinstance(current, int)    or  \
+            not isinstance(regen, int)      or  \
+            not isinstance(max, int)        or  \
+            not isinstance(bar, FillingBar):
+            raise Exception('regen_status: got something other than what was expected')
+
+        new_value = current + regen
+        setattr(self, 'current_' + attribute, new_value if new_value < max else max)
+        percent = current / max
+        r = bar.update(percent) # updating the mpbar to some %
+        _, r = bar.refresh(r) # repaiting the mpbar to the fighter's surface
+        _, r = self.refresh(r) # repainting the fighter to the character band's surface
+        return r
+
+
     def die(self) -> Rect:
         self.alive = False
         rect = line(self.image, RED, (0, 0), self.rect.size, 4)
         rect = line(self.image, RED, (self.rect.size[0], 0), (0, self.rect.size[1]), 4)
         _, rect = self.refresh(rect)
         return rect
+
 
     @property
     def dead(self) -> bool:
@@ -112,9 +150,9 @@ class HunterFighter(Fighter):
     def __init__(self):
         super().__init__("Hunter", 30, 15, 20, 20, 4)
         self.add_attack("Quickshot", 20, 5)
-        self.add_attack("Longshot", 20, 5)
-        self.add_attack("Stab", 20, 5)
-        self.add_attack("Trap", 20, 5)
+        self.add_attack("Longshot", 40, 10)
+        self.add_attack("Stab", 10, 2)
+        self.add_attack("Trap", 15, 6)
         self.add_defense("Camouflage", 5, 5)
         self.add_defense("Run", 5, 5)
         self.add_defense("Preparation", 5, 5)
@@ -150,7 +188,7 @@ class PriestFighter(Fighter):
 class RogueFighter(Fighter):
     def __init__(self):
         super().__init__("Rogue", 25, 20, 30, 10, 5)
-        self.add_attack("Stab", 30, 4)
+        self.add_attack("Stab", 30, 12)
         self.add_attack("Pickpocket", 30, 4)
         self.add_attack("Strike", 30, 4)
         self.add_attack("Threaten", 30, 4)
@@ -167,19 +205,19 @@ class WizardFighter(Fighter):
         self.add_attack("Lightining", 10, 5)
         self.add_attack("Icecold", 10, 5)
         self.add_attack("Imprison", 10, 5)
-        self.add_defense("Mana Shield", 5, 40)
-        self.add_defense("Run", 5, 40)
-        self.add_defense("Improve", 5, 40)
-        self.add_defense("Slowtime", 5, 40)
+        self.add_defense("Mana Shield", 5, 5)
+        self.add_defense("Run", 5, 5)
+        self.add_defense("Improve", 5, 5)
+        self.add_defense("Slowtime", 5, 5)
 
 
 class MageFighter(Fighter):
     def __init__(self):
         super().__init__("Mage", 50, 100, 50, 15, 3)
-        self.add_attack("Avadakedabra", 35, 10)
-        self.add_attack("Expelliarmus", 35, 10)
-        self.add_attack("Momentum", 35, 10)
-        self.add_attack("Avis", 35, 10)
+        self.add_attack("Avadakedabra", 10, 10)
+        self.add_attack("Expelliarmus", 10, 10)
+        self.add_attack("Momentum", 10, 10)
+        self.add_attack("Avis", 10, 10)
         self.add_defense("Hocus Pocus", 5, 5)
         self.add_defense("Run", 5, 5)
         self.add_defense("Aguamenti", 5, 5)
@@ -189,10 +227,10 @@ class MageFighter(Fighter):
 class SkullFighter(Fighter):
     def __init__(self):
         super().__init__("Skull", 100, 10, 10, 30, 1)
-        self.add_attack("Backbone", 5, 5)
-        self.add_attack("Bonebone", 5, 5)
-        self.add_attack("Boneattack", 5, 5)
-        self.add_attack("Bigbone", 5, 5)
+        self.add_attack("Backbone", 5, 3)
+        self.add_attack("Bonebone", 5, 3)
+        self.add_attack("Boneattack", 5, 3)
+        self.add_attack("Bigbone", 5, 3)
         self.add_defense("Endurance", 5, 2)
         self.add_defense("Run", 5, 2)
         self.add_defense("Reflect", 5, 2)

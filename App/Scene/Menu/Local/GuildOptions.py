@@ -4,7 +4,7 @@ from App.Object.Grid import Grid
 from App.Object.Object import SizedObject
 from App.Object.Selector import DefaultSelector
 from App.Scene.Menu.Local.HeroPortrait import HeroPortrait
-from App.Scene.Menu.Local.Positioning import                \
+from App.Scene.Menu.Local.Locals import                \
         GUILDOPTIONS_GRID_SPACING, GUILDOPTIONS_POSITION,   \
         SELECTOR_DISPLACEMENT
 from App.Setup.Globals import ALL_HERONAMES

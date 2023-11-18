@@ -1,14 +1,16 @@
 from App.Screen import Screen
 from App.Scene.Scene import Scene, EndOfScene
-from App.Scene.Battle.Local.CharacterBand import HeroBand, EnemyBand
+from App.Scene.Battle.Local.CharacterBand import CharacterBand, HeroBand, EnemyBand
 from App.Scene.Battle.Local.Box import Box
 from App.Scene.Battle.Local.Combat import Combat
 from App.Scene.Battle.Local.BattlePhase import BattlePhase
-from App.Scene.Battle.Local.PlayerChoices import Choices
+from App.Scene.Battle.Local.Choices import Choices
+from App.Object.Ability import Ability
 from App.Object.Fighter import Fighter
-from App.Setup.Globals import ANIMATE, SCREENSIZE 
 from App.Setup.Utils import battle_fight_logger
-from pygame.locals import K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
+from App.Setup.Globals import ANIMATE
+from App.Scene.Battle.Local.Locals import *
+from pygame.locals import K_x, K_z, K_UP, K_DOWN, K_LEFT, K_RIGHT, QUIT, MOUSEBUTTONDOWN, KEYDOWN
 from pygame.event import Event
 from pygame.mouse import get_pos
 from random import choice
@@ -30,20 +32,21 @@ class Battle(Scene):
         self.choices = Choices(3)
         self.combat = Combat()
         self.victory = False
+        self.abilities_fallback: list[Ability] = list()
 
 
     def load_initial_frame(self, *args) -> None:
         self.box = Box()
-        self.box.move("bottomleft", (0, SCREENSIZE[1]))
-        self.box.shift(50, -50)
+        self.box.move(*BOX_POSITION)
+        self.box.shift(*BOX_SHIFT)
 
         heros: list[str] = list(args)
         self.heros = HeroBand(heros)
-        self.heros.move("topleft", (240, 80))
+        self.heros.move(*HEROBAND_POSITION)
 
-        enemies = ["Skull", "Mage", "Skull"]
+        enemies = ENEMIES
         self.enemies = EnemyBand(enemies)
-        self.enemies.move("topleft", (600, 80))
+        self.enemies.move(*ENEMYBAND_POSITION)
 
         self.objects.pop()
         self.objects.append(self.box)
@@ -71,11 +74,16 @@ class Battle(Scene):
                 print(f"X: {x}, Y: {y}")
                 return
         elif event.type == ANIMATE:
-            match self.box.state:
-                case BattlePhase.SELECTING_HERO:
-                    pass
-                case BattlePhase.SELECTING_ENEMY:
-                    pass
+            if self.box.state.value >= BattlePhase.SELECTING_HERO.value:
+                hero: Fighter = self.heros.selector.select()
+                vibrate_character(self, hero)
+            if self.box.state.value == BattlePhase.SELECTING_ACTION.value:
+                pass
+            if self.box.state.value == BattlePhase.SELECTING_ABILITY.value:
+                pass
+            if self.box.state.value >= BattlePhase.SELECTING_ENEMY.value:
+                enemy: Fighter = self.enemies.selector.select()
+                vibrate_character(self, enemy)
         elif event.type == KEYDOWN:
             match self.box.state:
                 case BattlePhase.SELECTING_HERO:
@@ -88,6 +96,8 @@ class Battle(Scene):
                 case BattlePhase.SELECTING_ACTION:
                     if event.key == K_z:
                         choose_action(self)
+                    elif event.key == K_x:
+                        change_phase(self, BattlePhase.SELECTING_HERO)
                     elif event.key == K_UP:
                         move_action_indicator(self, "up")
                     elif event.key == K_DOWN:
@@ -99,6 +109,8 @@ class Battle(Scene):
                 case BattlePhase.SELECTING_ABILITY:
                     if event.key == K_z:
                         choose_ability(self)
+                    elif event.key == K_x:
+                        change_phase(self, BattlePhase.SELECTING_ACTION, ACTION_LIST)
                     elif event.key == K_UP:
                         move_ability_indicator(self, "up")
                     elif event.key == K_DOWN:
@@ -110,6 +122,8 @@ class Battle(Scene):
                 case BattlePhase.SELECTING_ENEMY:
                     if event.key == K_z:
                         choose_enemy(self)
+                    elif event.key == K_x:
+                        change_phase(self, BattlePhase.SELECTING_ABILITY, self.abilities_fallback)
                     elif event.key == K_UP:
                         move_enemy_indicator(self, "up")
                     elif event.key == K_DOWN:
@@ -139,7 +153,14 @@ class Battle(Scene):
         self.objects.pop() # enemies out
         self.objects.pop() # heros out
         self.objects.pop() # box out
-        return ["Victory"] if self.victory else ["Defeat"]
+        return [VICTORY_TEXT] if self.victory else [DEFEAT_TEXT]
+
+
+def change_phase(scene: Battle, phase: BattlePhase, *opts) -> None:
+    rects = scene.box.set_state(phase, *opts)
+    for rect in rects:
+        _, rect = scene.box.refresh(rect)
+        scene.screen.queue(rect)
 
 
 def choose_hero(scene: Battle) -> None:
@@ -147,17 +168,14 @@ def choose_hero(scene: Battle) -> None:
     chosen_heros = map(lambda x: x[0], scene.choices.history)
 
     if hero in chosen_heros:
-        print("This hero has already been selected in this turn! Please, choose another one")
+        print(REPEATED_HERO_WARNING)
         return
-    elif not hero.alive:
-        print("This hero is dead :skull_emoji: It can't be selected")
+    elif hero.dead:
+        print(DEAD_HERO_WARNING)
         return
 
     scene.choices.hero = hero
-    rects = scene.box.set_state(BattlePhase.SELECTING_ACTION, ["Attack", "Defend", "Use Item", "Pass"])
-    for rect in rects:
-        _, rect = scene.box.refresh(rect)
-        scene.screen.queue(rect)
+    change_phase(scene, BattlePhase.SELECTING_ACTION, ACTION_LIST)
 
 
 
@@ -175,17 +193,18 @@ def choose_action(scene: Battle) -> None:
 
     scene.choices.action = scene.box.select()
 
-    if scene.choices.action == "Attack":
+    if scene.choices.action == ATTACK_ACTION:
         abilities = scene.choices.hero.attacks.values()
-    elif scene.choices.action == "Defend":
+    elif scene.choices.action == DEFEND_ACTION:
         abilities = scene.choices.hero.defenses.values()
+    elif scene.choices.action == PASS_ACTION:
+        change_phase(scene, BattlePhase.BATTLE_TIME)
+        return
     else:
         raise Exception(f"'{scene.choices.action}' action was not yet implemented")
 
-    rects = scene.box.set_state(BattlePhase.SELECTING_ABILITY, abilities)
-    for rect in rects:
-        _, rect = scene.box.refresh(rect)
-        scene.screen.queue(rect)
+    scene.abilities_fallback = list(abilities)
+    change_phase(scene, BattlePhase.SELECTING_ABILITY, abilities)
 
 
 
@@ -204,29 +223,25 @@ def choose_ability(scene: Battle) -> None:
     if hero is None:
         return
 
-    if scene.choices.action == "Attack":
+    if scene.choices.action == ATTACK_ACTION:
         ability = hero.attacks[ability_name]
-    elif scene.choices.action == "Defense": 
+    elif scene.choices.action == DEFEND_ACTION: 
         ability = hero.defenses[ability_name]
     else:
         raise NotImplementedError()
 
     if hero.current_mp < ability.cost:
-        print("No mana left for this ability, choose another one")
+        print(INSUFFICIENT_MANA_WARNING)
         return
 
     scene.choices.ability = ability_name
-    rects = list()
-    if scene.choices.action == "Attack":
-        rects = scene.box.set_state(BattlePhase.SELECTING_ENEMY)
-    elif scene.choices.action == "Defend":
+    if scene.choices.action == ATTACK_ACTION:
+        change_phase(scene, BattlePhase.SELECTING_ENEMY)
+    elif scene.choices.action == DEFEND_ACTION:
         scene.choices.target = None
-        rects = scene.box.set_state(BattlePhase.BATTLE_TIME)
+        change_phase(scene, BattlePhase.BATTLE_TIME)
     else:
         raise Exception(f"{scene.choices.action} has no abilities available!")
-    for rect in rects:
-        _, rect = scene.box.refresh(rect)
-        scene.screen.queue(rect)
 
 
 
@@ -239,7 +254,11 @@ def move_ability_indicator(scene: Battle, direction: str) -> None:
 
 
 def choose_enemy(scene: Battle) -> None:
-    scene.choices.target = scene.enemies.select()
+    enemy = scene.enemies.select()
+    if enemy.dead:
+        print(DEAD_ENEMY_WARNING)
+        return
+    scene.choices.target = enemy
     scene.box.set_state(BattlePhase.BATTLE_TIME)
 
 
@@ -257,6 +276,8 @@ def fight(scene: Battle) -> None:
     # heros always attack first :)
     for choices in ordered_choices:
         hero, action, ability, enemy = choices
+        if ability is None:
+            continue
         if enemy is not None:
             character_attacks(scene, hero, enemy, ability)
             if enemy.dead:
@@ -282,6 +303,8 @@ def fight(scene: Battle) -> None:
                 raise Defeat()
 
     restore_original_resistance(ordered_choices)
+    regenerate_some_mp(scene)
+
     scene.choices.clear_history()
 
 
@@ -337,11 +360,13 @@ def character_defends(scene: Battle, character: Fighter, ability: str) -> None:
 
 
 
-def restore_original_resistance(choices: list[tuple[Fighter, str, str, Fighter | None]]) -> None:
+def restore_original_resistance(choices: list[tuple[Fighter, str, str | None, Fighter | None]]) -> None:
     for choice in choices:
         hero, action, ability, enemy = choice
-        if hero.alive and action == "Defend":
+        if hero.alive and action == DEFEND_ACTION:
             hero.resistance //= 2
+            log = "{} had its resistance restored after defending by using {}".format(hero.name, ability)
+            battle_fight_logger.info(log)
 
 
 
@@ -352,7 +377,45 @@ def all_enemies_dead(scene: Battle) -> bool:
 
 
 def restart_round(scene: Battle) -> None:
+    log = "=== A new round is starting ==="
+    battle_fight_logger.info(log)
+
     rects = scene.box.set_state(BattlePhase.SELECTING_HERO)
     for rect in rects:
         _, rect = scene.box.refresh(rect)
         scene.screen.queue(rect)
+
+
+def regenerate_some_mp(scene: Battle) -> None:
+    """ regenerates a bit of the mana spent by each character """
+
+    characters: list[Fighter] = list()
+    characters.extend(scene.heros.fighters)
+    characters.extend(scene.enemies.fighters)
+
+    for character in characters:
+        if character.dead:
+            continue
+        #r = character.regen_mp()
+        r = character.regen_attribute('mp')
+        if character in scene.heros.fighters:
+            _, r = scene.heros.refresh(r)
+        else:
+            _, r = scene.enemies.refresh(r)
+        scene.screen.queue(r)
+
+        log = "{} is regenerating some {} mana".format(character.name, character.mp_regen)
+        battle_fight_logger.info(log)
+
+
+def vibrate_character(scene: Battle, fighter: Fighter) -> None:
+    if fighter.character is None:
+        return
+
+    _, rect = fighter.character.vibrate(fighter.image)
+    _, rect = fighter.refresh(rect)
+    if fighter in scene.heros.fighters:
+        _, rect = scene.heros.refresh(rect)
+    elif fighter in scene.enemies.fighters:
+        _, rect = scene.enemies.refresh(rect)
+    scene.screen.queue(rect)

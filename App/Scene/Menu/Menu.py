@@ -1,6 +1,6 @@
 from App.Scene.Menu.Local.Banner import Banner
 from App.Scene.Menu.Local.GuildOptions import GuildOptions
-from App.Scene.Menu.Local.Positioning import *
+from App.Scene.Menu.Local.Locals import *
 from App.Scene.Scene import Scene, EndOfScene
 from App.Screen import Screen
 from App.Setup.Globals import ANIMATE

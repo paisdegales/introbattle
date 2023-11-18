@@ -21,7 +21,7 @@ class Scene:
     def load_initial_frame(self, *args) -> None:
         raise NotImplementedError()
 
-    def check_event(self, event: Event) -> int:
+    def check_event(self, event: Event) -> None:
         raise NotImplementedError()
 
     def terminate(self):

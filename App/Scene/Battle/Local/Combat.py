@@ -1,8 +1,17 @@
-from pygame.rect import Rect
 from App.Object.Ability import AttackAbility, DefenseAbility
 from App.Object.Fighter import Fighter
+from pygame.rect import Rect
+from math import ceil
 
 class Combat:
+    """ This class bridges the Fighter class and the Ability class, so that
+    cyclic dependency can be avoided.
+
+    Details:
+    One could argue that Fighters have abilities and abilities are owned by
+    Fighters. When using type notations, this design becomes problematic in Python
+    because of a cyclic dependency materialized as an import loop """
+
     def __init__(self):
         pass
 
@@ -12,7 +21,8 @@ class Combat:
         rects: list[Rect] = list()
         r = attacker.cast_spell(ability.cost)
         rects.append(r)
-        r = target.take_damage(ability.value)
+        damage = ability.value * (50/(50+target.resistance))
+        r = target.take_damage(ceil(damage))
         rects.append(r)
         return rects
 

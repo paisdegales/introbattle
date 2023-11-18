@@ -84,24 +84,31 @@ class FillingBar(AssembledUserInterfaceImage):
                 the area of the filling bar's surface that has changed """
 
         if percent > 1:
-            raise Exception("'update' method of FillingBar got something other than a percentage lesser than 1")
-
-        if percent < 0:
+            percent = 1
+        elif percent < 0:
             percent = 0
 
+        if percent < self.percent:
+            width = int(self.rect.w * (1 - percent))
+            size = width, self.rect.h
+            pos = self.rect.w - width, 0
+            r = Rect(pos, size)
+            changed_area = rect(self.image, GRAY, r, border_top_right_radius=10, border_bottom_right_radius=10)
+        else:
+            width = int(self.rect.w * percent)
+            size = width, self.rect.h
+            pos = 0, 0
+            r = Rect(pos, size)
+            changed_area = self.image.blit(self.full, pos, r)
         self.percent = percent
-        width = int(self.rect.w * (1 - percent))
-        size = width, self.rect.h
-        pos = self.rect.w - width, 0
-        r = Rect(pos, size)
-        changed_area = rect(self.image, GRAY, r, border_top_right_radius=10, border_bottom_right_radius=10)
         return changed_area
 
 
-    def restore(self) -> None:
+    def restore(self) -> Rect:
         self.percent = 1
-        self.image = self.full.copy()
-        self.image.blit(self.full, (0, 0))
+        r = self.image.blit(self.full, (0, 0))
+        return r
+
 
 
 class HealthBar(FillingBar):
