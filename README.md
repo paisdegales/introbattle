@@ -55,7 +55,7 @@ And voila! now you can play it! hooray!
 
 ### End
 
-1. Use the up, down, right and left arrows to move the character
+1. Use `→`, `←`, `↑` and `↓` arrows to move the character
 
 
 ---
@@ -69,27 +69,31 @@ Include some cool images :)
 ## Folder structure
 
 ```bash
-App/
-├── Font
-├── Object
-├── Resource
-│   ├── Background
-│   ├── Character
-│   │   ├── Enemy
-│   │   └── Hero
-│   ├── Fonts
-│   │   ├── BricolageGrotesque
-│   │   ├── Dosis
-│   │   ├── Handjet
-│   │   ├── OpenSans
-│   │   └── SourceCodePro
-│   └── UI
-├── Scene
-│   ├── Battle
-│   │   └── Local
-│   └── Menu
-│       └── Local
-└── Setup
+.
+├── App
+│   ├── Font
+│   ├── Object
+│   ├── Resource
+│   │   ├── Background
+│   │   ├── Character
+│   │   │   ├── Enemy
+│   │   │   └── Hero
+│   │   ├── Fonts
+│   │   │   ├── BricolageGrotesque
+│   │   │   ├── Dosis
+│   │   │   ├── Handjet
+│   │   │   ├── OpenSans
+│   │   │   └── SourceCodePro
+│   │   └── UI
+│   ├── Scene
+│   │   ├── Battle
+│   │   │   ├── Local
+│   │   ├── End
+│   │   │   ├── Local
+│   │   ├── Menu
+│   │   │   ├── Local
+│   └── Setup
+└── assets
 ```
 
 
@@ -101,7 +105,6 @@ App/
 1. Criar caixa de status dos personagens
 2. Melhorar arquivo de log, com mais coverage sobre a cena de Batalha
 3. Balancear os bonecos
-4. Melhorar exibição do nomes das habilidades (add dano e mana da habilidade)
 
 
 # BACKLOG
@@ -115,7 +118,8 @@ App/
 * Cobrir algumas partes do codigo aqui no readme: design por cenas, como se
 desenha/atualiza a screen nesse projeto, a intencao de nao usar sprites (e como
 eu me arrependi por isso kk) e coisas que possivelmente ficarao faltando, falar
-que o design do grid foi dificil
+que o design do grid foi dificil, falar da funcao event_handler (falar um pouco
+desse design de eventos que foi pensado)
 
 
 # ANOTAÇÕES

@@ -230,7 +230,7 @@ def choose_ability(scene: Battle) -> None:
     else:
         raise NotImplementedError()
 
-    if hero.current_mp < ability.cost:
+    if hero.mp.value < ability.cost:
         print(INSUFFICIENT_MANA_WARNING)
         return
 
@@ -396,7 +396,6 @@ def regenerate_some_mp(scene: Battle) -> None:
     for character in characters:
         if character.dead:
             continue
-        #r = character.regen_mp()
         r = character.regen_attribute('mp')
         if character in scene.heros.fighters:
             _, r = scene.heros.refresh(r)
@@ -404,7 +403,7 @@ def regenerate_some_mp(scene: Battle) -> None:
             _, r = scene.enemies.refresh(r)
         scene.screen.queue(r)
 
-        log = "{} is regenerating some {} mana".format(character.name, character.mp_regen)
+        log = "{} is regenerating some {} mana".format(character.name, character.mp.regen)
         battle_fight_logger.info(log)
 
 

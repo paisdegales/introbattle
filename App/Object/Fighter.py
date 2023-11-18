@@ -10,84 +10,52 @@ from pygame.draw import line
 class Fighter(SizedObject):
     def __init__(self, character_name: str, max_hp: int, max_mp: int, max_stamina: int, resistance: int, speed: int):
         self.character = create_character_image(character_name)
-        if self.character is None:
-            raise Exception(f"No character named {character_name} was found!")
-
-        self.hpbar = HealthBar()
-        self.mpbar = ManaBar()
-        self.staminabar = StaminaBar()
-        self.components: list[BaseObject] = [self.character, self.hpbar, self.mpbar, self.staminabar]
-
-        width = max(map(lambda x: x.rect.w, self.components))
-        height = sum(map(lambda x: x.rect.h, self.components))
-
-        # why +10? Answer: to ensure that this object will be able to vibrate without getting cropped by its surface's size
-        super().__init__(character_name, (width+10, height+10))
-        self.hide = True
-
-        self.hpbar.move("midtop", (int(width/2), 0))
-        self.mpbar.move("midtop", self.hpbar.rect.midbottom)
-        self.staminabar.move("midtop", self.mpbar.rect.midbottom)
-        self.character.move("midbottom", (int(width/2), height))
-
-        for obj in self.components:
-            obj.draw(self.image)
-
-        self.max_hp = max_hp
-        self.max_mp = max_mp
-        self.max_stamina = max_stamina
+        self.hp = HealthBar(max_hp, max_hp // 10)
+        self.mp = ManaBar(max_mp, max_mp // 5)
+        self.stamina = StaminaBar(max_stamina, max_stamina // 4)
         self.resistance = resistance
         self.speed = speed
-        self.hp_regen = max_hp // 10
-        self.mp_regen = max_mp // 5
-        self.stamina_regen = max_stamina // 4
-        self.current_hp = max_hp
-        self.current_mp = max_mp
-        self.current_stamina = max_stamina
         self.attacks: dict[str, AttackAbility] = dict()
         self.defenses: dict[str, DefenseAbility] = dict()
         self.alive = True
 
+        components: list[BaseObject] = [self.character, self.hp, self.mp, self.stamina]
+
+        width = max(map(lambda x: x.rect.w, components))
+        height = sum(map(lambda x: x.rect.h, components))
+
+        # why +10? Answer: to ensure that this object will be able to vibrate without getting cropped by its surface's size
+        super().__init__(character_name, (width+10, height+10))
+        self.hide = True
+        self.hp.move("midtop", (width//2, 0))
+        self.mp.move("midtop", self.hp.rect.midbottom)
+        self.stamina.move("midtop", self.mp.rect.midbottom)
+        self.character.move("midbottom", (width//2, height))
+        for obj in components:
+            obj.draw(self.image)
+
 
     def take_damage(self, damage: int) -> Rect:
-        """ returns a rectangle (relative coordinates and size) of the area that has changed """
-
-        self.current_hp -= damage
-        if self.current_hp <= 0:
+        r = self.hp.update(-damage)
+        if self.hp.value == 0:
             self.alive = False
-        percent = self.current_hp / self.max_hp
-        area = self.hpbar.update(percent)
-        self.hpbar.erase()
-        _, position = self.hpbar.draw(self.image)
-        changed = area.move(*position.topleft)
-        _, changed = self.refresh(changed)
-        return changed
+        _, r = self.hp.refresh(r)
+        _, r = self.refresh(r)
+        return r
 
 
     def cast_spell(self, mana: int) -> Rect:
-        """ returns a rectangle (relative coordinates and size) of the area that has changed """
-
-        self.current_mp -= mana
-        percent = self.current_mp / self.max_mp
-        area = self.mpbar.update(percent)
-        self.mpbar.erase()
-        _, position = self.mpbar.draw(self.image)
-        changed = area.move(*position.topleft)
-        _, changed = self.refresh(changed)
-        return changed
+        r = self.mp.update(-mana)
+        _, r = self.mp.refresh(r)
+        _, r = self.refresh(r)
+        return r
 
 
     def spend_energy(self, energy: int) -> Rect:
-        """ returns a rectangle (relative coordinates and size) of the area that has changed """
-
-        self.current_stamina -= energy
-        percent = self.current_stamina / self.max_stamina
-        area = self.staminabar.update(percent)
-        self.staminabar.erase()
-        _, position = self.staminabar.draw(self.image)
-        changed = area.move(*position.topleft)
-        _, changed = self.refresh(changed)
-        return changed
+        r = self.stamina.update(-energy)
+        _, r = self.stamina.refresh(r)
+        _, r = self.refresh(r)
+        return r
 
 
     def add_attack(self, name: str, value: int, cost: int) -> None:
@@ -103,31 +71,14 @@ class Fighter(SizedObject):
 
             Parameters: attribute: str ('hp', 'mp' or 'stamina')
 
-            Return: * A rectangle which represents the relative area of the fighter's surface that has changed
+            Return: * A rectangle which represents the relative area of the fighter's surface that has changed """
 
-            Exceptions:
-                1. If an attribute other than 'hp', 'mp' or 'stamina' is passed, the base Exception class is generated 
-                2. If 'self.current_attribute' or 'self.regen_attribute' or 'self.max_attribute' or 'self.attributebar' have mismatching types with what's expected, then the base Exception class is generated """
-
-        if attribute not in ('mp', 'hp', 'stamina'):
-            raise Exception('regen_attribute: invalid attribute')
-
-        current = getattr(self, 'current_' + attribute)
-        regen = getattr(self, attribute + '_regen')
-        max = getattr(self, 'max_' + attribute)
-        bar = getattr(self, attribute + 'bar')
-
-        if  not isinstance(current, int)    or  \
-            not isinstance(regen, int)      or  \
-            not isinstance(max, int)        or  \
-            not isinstance(bar, FillingBar):
+        bar = getattr(self, attribute)
+        if not isinstance(bar, FillingBar):
             raise Exception('regen_status: got something other than what was expected')
 
-        new_value = current + regen
-        setattr(self, 'current_' + attribute, new_value if new_value < max else max)
-        percent = current / max
-        r = bar.update(percent) # updating the mpbar to some %
-        _, r = bar.refresh(r) # repaiting the mpbar to the fighter's surface
+        r = bar.update(bar.regen) # updating the mp to some %
+        _, r = bar.refresh(r) # repaiting the mp to the fighter's surface
         _, r = self.refresh(r) # repainting the fighter to the character band's surface
         return r
 
@@ -149,27 +100,27 @@ class Fighter(SizedObject):
 class HunterFighter(Fighter):
     def __init__(self):
         super().__init__("Hunter", 30, 15, 20, 20, 4)
-        self.add_attack("Quickshot", 20, 5)
-        self.add_attack("Longshot", 40, 10)
         self.add_attack("Stab", 10, 2)
+        self.add_attack("Quickshot", 20, 5)
         self.add_attack("Trap", 15, 6)
-        self.add_defense("Camouflage", 5, 5)
+        self.add_attack("Longshot", 40, 10)
         self.add_defense("Run", 5, 5)
-        self.add_defense("Preparation", 5, 5)
         self.add_defense("Sniff", 5, 5)
+        self.add_defense("Preparation", 5, 5)
+        self.add_defense("Camouflage", 5, 5)
 
 
 class PaladinFighter(Fighter):
     def __init__(self):
         super().__init__("Paladin", 40, 10, 25, 30, 1)
         self.add_attack("Charge", 15, 2)
-        self.add_attack("Holysword", 15, 2)
         self.add_attack("Impale", 15, 2)
         self.add_attack("Strike", 15, 2)
-        self.add_defense("Divine Shield", 5, 5)
+        self.add_attack("Holysword", 15, 2)
         self.add_defense("Run", 5, 5)
         self.add_defense("Battlecry", 5, 5)
         self.add_defense("Endurance", 5, 5)
+        self.add_defense("Divine Shield", 5, 5)
 
 
 class PriestFighter(Fighter):
@@ -177,8 +128,8 @@ class PriestFighter(Fighter):
         super().__init__("Priest", 25, 40, 10, 10, 2)
         self.add_attack("Curse", 10, 5)
         self.add_attack("Codemn", 10, 5)
-        self.add_attack("Repent", 10, 5)
         self.add_attack("Slur", 10, 5)
+        self.add_attack("Repent", 10, 5)
         self.add_defense("Pray", 5, 5)
         self.add_defense("Run", 20, 10)
         self.add_defense("Heal", 20, 10)
@@ -189,9 +140,9 @@ class RogueFighter(Fighter):
     def __init__(self):
         super().__init__("Rogue", 25, 20, 30, 10, 5)
         self.add_attack("Stab", 30, 12)
-        self.add_attack("Pickpocket", 30, 4)
-        self.add_attack("Strike", 30, 4)
         self.add_attack("Threaten", 30, 4)
+        self.add_attack("Strike", 30, 4)
+        self.add_attack("Pickpocket", 30, 4)
         self.add_defense("Evade", 5, 5)
         self.add_defense("Run", 5, 5)
         self.add_defense("Fadeaway", 5, 5)
@@ -205,8 +156,8 @@ class WizardFighter(Fighter):
         self.add_attack("Lightining", 10, 5)
         self.add_attack("Icecold", 10, 5)
         self.add_attack("Imprison", 10, 5)
-        self.add_defense("Mana Shield", 5, 5)
         self.add_defense("Run", 5, 5)
+        self.add_defense("Mana Shield", 5, 5)
         self.add_defense("Improve", 5, 5)
         self.add_defense("Slowtime", 5, 5)
 
@@ -214,14 +165,14 @@ class WizardFighter(Fighter):
 class MageFighter(Fighter):
     def __init__(self):
         super().__init__("Mage", 50, 100, 50, 15, 3)
-        self.add_attack("Avadakedabra", 10, 10)
-        self.add_attack("Expelliarmus", 10, 10)
-        self.add_attack("Momentum", 10, 10)
         self.add_attack("Avis", 10, 10)
-        self.add_defense("Hocus Pocus", 5, 5)
+        self.add_attack("Avadakedabra", 10, 10)
+        self.add_attack("Momentum", 10, 10)
+        self.add_attack("Expelliarmus", 10, 10)
         self.add_defense("Run", 5, 5)
-        self.add_defense("Aguamenti", 5, 5)
+        self.add_defense("Hocus Pocus", 5, 5)
         self.add_defense("Ascendio", 5, 5)
+        self.add_defense("Aguamenti", 5, 5)
 
 
 class SkullFighter(Fighter):
@@ -231,10 +182,10 @@ class SkullFighter(Fighter):
         self.add_attack("Bonebone", 5, 3)
         self.add_attack("Boneattack", 5, 3)
         self.add_attack("Bigbone", 5, 3)
-        self.add_defense("Endurance", 5, 2)
         self.add_defense("Run", 5, 2)
-        self.add_defense("Reflect", 5, 2)
+        self.add_defense("Endurance", 5, 2)
         self.add_defense("Repair", 5, 2)
+        self.add_defense("Reflect", 5, 2)
 
 
 def create_guild(names: list[str]) -> list[Fighter]:

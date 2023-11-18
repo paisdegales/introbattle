@@ -1,3 +1,4 @@
+from types import NotImplementedType
 from pygame.rect import Rect
 from pygame.draw import rect
 from App.Setup.Globals import GRAY, uipath, WHITE
@@ -66,61 +67,74 @@ class Button(AssembledUserInterfaceImage):
 
 
 class FillingBar(AssembledUserInterfaceImage):
-    def __init__(self, ui_name: str):
+    def __init__(self, ui_name: str, max: int, regen: int):
         super().__init__(ui_name)
         self.scale_by(1.3)
         self.full = self.image.copy()
         self.full.blit(self.image, (0, 0))
-        self.percent = 1
+        self.max = max
+        self.value = max
+        self.regen = regen
 
 
-    def update(self, percent: float) -> Rect:
-        """ decreases/increases the bar by how much it's filled
-            
-            Parameters:
-                percent: how much the fillbar is filled
+    def increase(self, value: int) -> Rect:
+        if (self.value + value) > self.max:
+            return self.fill()
 
-            Return: Rect
-                the area of the filling bar's surface that has changed """
-
-        if percent > 1:
-            percent = 1
-        elif percent < 0:
-            percent = 0
-
-        if percent < self.percent:
-            width = int(self.rect.w * (1 - percent))
-            size = width, self.rect.h
-            pos = self.rect.w - width, 0
-            r = Rect(pos, size)
-            changed_area = rect(self.image, GRAY, r, border_top_right_radius=10, border_bottom_right_radius=10)
-        else:
-            width = int(self.rect.w * percent)
-            size = width, self.rect.h
-            pos = 0, 0
-            r = Rect(pos, size)
-            changed_area = self.image.blit(self.full, pos, r)
-        self.percent = percent
+        self.value += value
+        percent = self.value / self.max
+        width = int(self.rect.w * percent)
+        size = width, self.rect.h
+        pos = 0, 0
+        r = Rect(pos, size)
+        changed_area = self.image.blit(self.full, pos, r)
         return changed_area
 
 
-    def restore(self) -> Rect:
-        self.percent = 1
+    def decrease(self, value: int) -> Rect:
+        if (self.value - value) <= 0:
+            return self.empty()
+
+        self.value -= value
+        percent = self.value / self.max
+        width = int(self.rect.w * (1 - percent))
+        size = width, self.rect.h
+        pos = self.rect.w - width, 0
+        r = Rect(pos, size)
+        changed_area = rect(self.image, GRAY, r, border_top_right_radius=10, border_bottom_right_radius=10)
+        return changed_area
+
+
+    def update(self, value: int) -> Rect:
+        if value >= 0:
+            return self.increase(value)
+        else:
+            return self.decrease(-value)
+
+
+    def fill(self) -> Rect:
+        self.value = self.max
         r = self.image.blit(self.full, (0, 0))
+        return r
+
+
+    def empty(self) -> Rect:
+        self.value = 0
+        r = rect(self.image, GRAY, Rect((0, 0), self.image.get_size()), border_top_right_radius=10, border_bottom_right_radius=10)
         return r
 
 
 
 class HealthBar(FillingBar):
-    def __init__(self):
-        super().__init__("introcomp_hp .png")
+    def __init__(self, max: int, regen: int):
+        super().__init__("introcomp_hp .png", max, regen)
 
 
 class ManaBar(FillingBar):
-    def __init__(self):
-        super().__init__("introcomp_mp.png")
+    def __init__(self, max: int, regen: int):
+        super().__init__("introcomp_mp.png", max, regen)
 
 
 class StaminaBar(FillingBar):
-    def __init__(self):
-        super().__init__("introcomp_stamina.png")
+    def __init__(self, max: int, regen: int):
+        super().__init__("introcomp_stamina.png", max, regen)

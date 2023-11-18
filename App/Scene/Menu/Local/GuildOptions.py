@@ -1,5 +1,5 @@
 from pygame.rect import Rect
-from App.Object.CharacterImage import HeroImage, create_all_hero_images
+from App.Object.CharacterImage import CharacterImage, HeroImage
 from App.Object.Grid import Grid
 from App.Object.Object import SizedObject
 from App.Object.Selector import DefaultSelector

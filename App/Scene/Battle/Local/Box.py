@@ -6,15 +6,14 @@ from App.Object.Object import SizedObject, BaseObject
 from App.Object.Selector import DefaultSelector
 from App.Scene.Battle.Local.BattlePhase import BattlePhase
 from App.Scene.Battle.Local.Locals import BOX_FONTFAMILY, \
-    BOX_BGCOLOR, BOX_FONTSIZE, BOX_FONTCOLOR, BOX_GRID_POSITION, BOX_CHOOSE_ENEMY_TEXT, BOX_CHOOSE_HERO_TEXT
-from pygame.rect import Rect
-
+    BOX_BGCOLOR, BOX_FONTSIZE, BOX_FONTCOLOR, BOX_GRID_POSITION, BOX_CHOOSE_ENEMY_TEXT, BOX_CHOOSE_HERO_TEXT, BOX_SIZE
 from App.Setup.Globals import GRAY, WHITE
+from pygame.rect import Rect
 
 
 class Box(SizedObject):
     def __init__(self):
-        super().__init__("Player box", (450, 250))
+        super().__init__("Player box", BOX_SIZE)
 
         # configuring how all texts of this class will look like
         self.pen = Pen(FontFamily(BOX_FONTFAMILY), "Regular", BOX_FONTSIZE, BOX_FONTCOLOR)
@@ -171,8 +170,9 @@ class Box(SizedObject):
         # positioning all ability names in the screen
         positions = self.grid.get_positions("midleft")
         for ability, position in zip(abilities, positions):
-            text = ability.name
-            obj: BaseObject = self.pen.write(text)
+            #text = ability.name
+            #obj: BaseObject = self.pen.write(text)
+            obj = ability.generate_text(BOX_FONTFAMILY, BOX_FONTSIZE, BOX_FONTCOLOR)
             obj.move("midleft", position)
             _, r = obj.draw(self.image)
             rects.append(r)

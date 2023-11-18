@@ -57,7 +57,7 @@ class MageImage(EnemyImage):
         self.flip(True, False)
 
 
-def create_character_image(character_name: str) -> CharacterImage | None:
+def create_character_image(character_name: str) -> CharacterImage:
     match character_name:
         case "Paladin.png" | "Paladin":
             return PaladinImage()
@@ -74,7 +74,7 @@ def create_character_image(character_name: str) -> CharacterImage | None:
         case "Mage.png" | "Mage":
             return MageImage()
         case _:
-            return None
+            raise Exception(f"No character named {character_name} is known")
 
 
 def create_all_hero_images() -> list[HeroImage]:
