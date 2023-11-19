@@ -61,7 +61,14 @@ And voila! now you can play it! hooray!
 
 ## How the game looks
 
-Include some cool images :)
+### Menu
+![Menu scene](assets/menu.png "menu")
+
+### Battle
+![Battle scene](assets/battle.png "battle")
+
+### End
+![End scene](assets/end.png "end")
 
 ---
 
@@ -112,7 +119,7 @@ Each scene has its own folder in `App/Scene`.
 ## The `Screen` class
 The `Screen` class is responsible for manipulating the **screen surface** and drawing
 `BaseObject` instances to it.
-This class its instances to accumulate damaged areas and refresh the screen with all changes at once.
+This class allows its instances to accumulate damaged areas and refresh the screen with all changes at once.
 To draw a `BaseObject` to the screen, simply input the object to the method `draw`.
 To erase an object off the screen, simply input the object's `name` to the method `erase`.
 To refresh a region of the screen, first queue the area to be refreshed with the method `queue` and then call the method `update`.
