@@ -1,8 +1,8 @@
-from types import NotImplementedType
+from App.Setup.Globals import GRAY, uipath
+from App.Object.Object import ImportedObject, SizedObject
+from App.Setup.Utils import fillingbar_logger
 from pygame.rect import Rect
 from pygame.draw import rect
-from App.Setup.Globals import GRAY, uipath, WHITE
-from App.Object.Object import ImportedObject, SizedObject
 
 
 class UserInterfaceImage(ImportedObject):
@@ -81,6 +81,7 @@ class FillingBar(AssembledUserInterfaceImage):
         if (self.value + value) > self.max:
             return self.fill()
 
+        fillingbar_logger.info("'%s' has been increased from %s to %s", self.name, self.value, self.value+value)
         self.value += value
         percent = self.value / self.max
         width = int(self.rect.w * percent)
@@ -95,6 +96,7 @@ class FillingBar(AssembledUserInterfaceImage):
         if (self.value - value) <= 0:
             return self.empty()
 
+        fillingbar_logger.info("'%s' has been decreased from %s to %s", self.name, self.value, self.value-value)
         self.value -= value
         percent = self.value / self.max
         width = int(self.rect.w * (1 - percent))
@@ -113,12 +115,14 @@ class FillingBar(AssembledUserInterfaceImage):
 
 
     def fill(self) -> Rect:
+        fillingbar_logger.info("'%s' has been filled", self.name)
         self.value = self.max
         r = self.image.blit(self.full, (0, 0))
         return r
 
 
     def empty(self) -> Rect:
+        fillingbar_logger.info("'%s' is now empty", self.name)
         self.value = 0
         r = rect(self.image, GRAY, Rect((0, 0), self.image.get_size()), border_top_right_radius=10, border_bottom_right_radius=10)
         return r

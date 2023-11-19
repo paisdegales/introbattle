@@ -1,7 +1,3 @@
-activate.fish
-venv/
 __pycache__/
-tags
-Session.vim
 introbattle.log
-run.fish
+introbattle.log.1

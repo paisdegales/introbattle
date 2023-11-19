@@ -7,7 +7,8 @@ from App.Object.Selector import DefaultSelector
 from App.Scene.Battle.Local.BattlePhase import BattlePhase
 from App.Scene.Battle.Local.Locals import BOX_FONTFAMILY, \
     BOX_BGCOLOR, BOX_FONTSIZE, BOX_FONTCOLOR, BOX_GRID_POSITION, BOX_CHOOSE_ENEMY_TEXT, BOX_CHOOSE_HERO_TEXT, BOX_SIZE
-from App.Setup.Globals import GRAY, WHITE
+from App.Setup.Globals import WHITE
+from App.Setup.Utils import battle_box_logger
 from pygame.rect import Rect
 
 
@@ -170,9 +171,7 @@ class Box(SizedObject):
         # positioning all ability names in the screen
         positions = self.grid.get_positions("midleft")
         for ability, position in zip(abilities, positions):
-            #text = ability.name
-            #obj: BaseObject = self.pen.write(text)
-            obj = ability.generate_text(BOX_FONTFAMILY, BOX_FONTSIZE, BOX_FONTCOLOR)
+            obj = ability.generate_text(self.pen)
             obj.move("midleft", position)
             _, r = obj.draw(self.image)
             rects.append(r)
@@ -229,6 +228,7 @@ class Box(SizedObject):
 
             Return: list[Rect]
                 * a list of all the areas that have changed in self's surface in order to go to the desired state """
+        battle_box_logger.info("Changing to state %s", str(state_id))
 
         rects: list[Rect] = list()
         match state_id:

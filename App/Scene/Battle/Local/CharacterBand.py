@@ -3,14 +3,18 @@ from App.Object.Fighter import Fighter, create_guild
 from App.Object.Grid import Grid
 from App.Object.Object import SizedObject
 from App.Object.Selector import DefaultSelector
+from App.Setup.Utils import battle_band_logger
 
 
 class CharacterBand(SizedObject):
     def __init__(self, name: str, characters: list[str], grid: Grid):
+        battle_band_logger.info("'%s' band is being initialized", name)
         super().__init__(name, (grid.w, grid.h))
         self.hide = True
         self.grid = grid
+        battle_band_logger.info("'%s' fighters will be loaded", name)
         self.fighters = create_guild(characters)
+        battle_band_logger.info("'%s' selector is about to be created", name)
         self.selector = DefaultSelector(self.grid, (0, 0))
         self.selector.jump("midtop")
         for fighter, position in zip(self.fighters, self.grid.get_positions("midtop")):

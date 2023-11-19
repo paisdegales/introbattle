@@ -1,8 +1,6 @@
-from App.Font.Family import FontFamily
 from App.Font.Pen import Pen
 from App.Object.Object import BaseObject, SizedObject
 from App.Setup.Globals import BLUE, RED
-from pygame.color import Color
 from pygame.draw import circle
 
 
@@ -14,13 +12,11 @@ class Ability:
         self.description = ""
 
 
-    def generate_text(self, familyname: str, size: int, text_color: Color) -> BaseObject:
-        self.pen = Pen(FontFamily(familyname), "Regular", size, text_color)
-
-        name = self.pen.write(self.name)
-        value = self.pen.write(str(self.value))
+    def generate_text(self, pen: Pen) -> BaseObject:
+        name = pen.write(self.name)
+        value = pen.write(str(self.value))
         strength_symbol = SizedObject('strength', (15, 15))
-        cost = self.pen.write(str(self.cost))
+        cost = pen.write(str(self.cost))
         mana_symbol = SizedObject('mana', (15, 15))
 
         circle(strength_symbol.image, RED, strength_symbol.rect.center, 4)
