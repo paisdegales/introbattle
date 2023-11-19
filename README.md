@@ -65,7 +65,7 @@ And voila! now you can play it! hooray!
 ![Menu scene](assets/menu.png "menu")
 
 ### Battle
-![Battle scene](assets/battle.png "battle")
+![Battle scene](assets/fight.png "battle")
 
 ### End
 ![End scene](assets/end.png "end")
