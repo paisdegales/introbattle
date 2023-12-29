@@ -28,7 +28,7 @@ cd path/to/introbattle
 Install all requirements
 
 ```bash
-pip freeze -r requirements.txt
+pip install -r requirements.txt
 ```
 
 Run the game
