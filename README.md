@@ -5,7 +5,7 @@ This is a showcase of a game built using pygame
 This project is originally part of Introcomp, a programming course of
 [UFES](https://internacional.ufes.br/en/institution) for high school students of public schools
 
-You can found more about Introcomp on:
+You can find out more about Introcomp on:
 * instagram: [@introcompufes](https://www.instagram.com/introcompufes/?hl=en)
 * web: [introcomp site](https://introcomp.pet.inf.ufes.br/)
 
