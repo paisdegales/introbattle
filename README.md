@@ -153,3 +153,7 @@ Just be careful, because this file can grow a lot!
 - [ ] analyze ram usage with [tracemalloc](https://docs.python.org/3/library/tracemalloc.html)
 - [ ] replace all variables used as 'constants' by [JSON objects](https://docs.python.org/3/library/json.html)
 - [ ] create a custom class for surfaces. This would improve all logging messages related to drawing to any surface.
+- [ ] make this game work for different display sizes
+- [ ] add language support
+- [ ] improve logging
+- [ ] create surface wrapper class, to enable better logging
